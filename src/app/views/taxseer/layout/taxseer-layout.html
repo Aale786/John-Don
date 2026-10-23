@@ -1,0 +1,40 @@
+<div class="taxseer-layout">
+
+    <!-- =========================================================
+         GLOBAL TAXSEER NAVIGATION
+         ========================================================= -->
+
+    <taxseer-top-nav />
+
+
+    <!-- =========================================================
+         ROUTED PAGE CONTENT
+         ========================================================= -->
+
+    <main class="taxseer-main">
+        <router-outlet />
+    </main>
+
+
+    <!-- =========================================================
+         GLOBAL SUPPORT / MESSAGE BUTTON
+         =========================================================
+         
+         This belongs to the Taxseer layout so it appears on
+         every Taxseer routed screen automatically.
+         
+         The icon is the same rectangular message icon used
+         in the Dashboard prototype.
+         ========================================================= -->
+
+    <button
+        type="button"
+        class="taxseer-support-button"
+        aria-label="Open support messages"
+    >
+
+        <img src="/assets/icons/support-chat-white.svg" alt="support-chat" class="support-chat-icon taxseer-support-button__icon" width="24" height="24" />
+
+    </button>
+
+</div>

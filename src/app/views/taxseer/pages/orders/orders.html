@@ -1,0 +1,335 @@
+<main class="page">
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+    <div class="head">
+        <div>
+            <h1>Orders</h1>
+            <p>
+                Every order placed for every filer on this account. Statuses update automatically as the IRS and SSA respond.
+            </p>
+        </div>
+
+        <button mat-button type="button" class="btn border border-gray-200" (click)="showToast('Orders exported to Excel')">
+            <img src="/assets/icons/export-ink.svg" alt="export" class="export-icon" width="16" height="16" />
+            Export
+        </button>
+    </div>
+
+    <!-- =========================================================
+         STAT TILES
+         ========================================================= -->
+    <div class="tiles [margin-bottom:16px]" role="group" aria-label="Filter by status">
+        <button mat-button
+            type="button"
+            class="tile border"
+            [ngClass]="selectedStatus === 'all' ? 'border-taxseer-navy' : 'border-gray-300'"
+            (click)="setStatus('all')"
+        >
+            <span class="v">{{ counts.all }}</span>
+            <span class="small muted">orders · ${{ totalSpent | number:'1.2-2' }} total</span>
+        </button>
+
+        <button mat-button
+            type="button"
+            class="tile border"
+            [ngClass]="selectedStatus === 'process' ? 'border-taxseer-navy' : 'border-gray-300'"
+            (click)="setStatus('process')"
+        >
+            <span class="v">{{ counts.process }}</span>
+            <span class="small muted">in process with IRS / SSA</span>
+        </button>
+
+        <button mat-button
+            type="button"
+            class="tile border"
+            [ngClass]="selectedStatus === 'rejected' ? 'border-taxseer-navy' : 'border-gray-300'"
+            (click)="setStatus('rejected')"
+        >
+            <span class="v">{{ counts.rejected }}</span>
+            <span class="small muted">with rejected forms</span>
+        </button>
+
+        <button mat-button
+            type="button"
+            class="tile border"
+            [ngClass]="selectedStatus === 'accepted' ? 'border-taxseer-navy' : 'border-gray-300'"
+            (click)="setStatus('accepted')"
+        >
+            <span class="v">{{ counts.accepted }}</span>
+            <span class="small muted">fully accepted</span>
+        </button>
+    </div>
+
+    <!-- =========================================================
+         ORDERS CARD & TABLE
+         ========================================================= -->
+    <section class="card">
+        <div class="toolbar">
+            <input matInput
+                type="search"
+                class="search"
+                placeholder="Order number or filer"
+                aria-label="Search orders"
+                [(ngModel)]="searchQuery"
+            />
+
+            <label class="yr">
+                <span class="small muted">Filer</span>
+                <mat-select class="sel [width:240px]" aria-label="Filter by filer" [(ngModel)]="selectedFiler">
+                    <mat-option value="all">All filers</mat-option>
+                    @for (f of filerOptions; track f) {
+                        <mat-option [value]="f">
+                            {{ f }}
+                        </mat-option>
+                    }
+                </mat-select>
+            </label>
+
+            <label class="yr">
+                <span class="small muted">Tax year</span>
+                <mat-select class="sel [width:96px]" aria-label="Filter by tax year" [(ngModel)]="selectedYear">
+                    <mat-option value="all">All</mat-option>
+                    <mat-option value="2025">2025</mat-option>
+                    <mat-option value="2024">2024</mat-option>
+                </mat-select>
+            </label>
+
+            <span class="spacer"></span>
+
+            <span class="small muted">
+                {{ filteredOrders.length }} order{{ filteredOrders.length === 1 ? '' : 's' }}
+            </span>
+        </div>
+
+        <div class="tbl-wrap">
+            <table class="tbl [min-width:1080px]">
+                <thead>
+                    <tr>
+                        <th class="[width:44px]">
+                            <span class="sr">Expand</span>
+                        </th>
+                        <th>Order</th>
+                        <th>Filer</th>
+                        <th>Placed</th>
+                        <th>Tax year</th>
+                        <th class="num">Forms</th>
+                        <th class="num">Amount</th>
+                        <th>IRS / SSA status</th>
+                        <th>Recipient copies</th>
+                        <th class="[text-align:right]">Files</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (order of filteredOrders; track order.no) {
+                        <tr>
+                            <!-- Expand chevron -->
+                            <td>
+                                <button
+                                    type="button"
+                                    class="exp"
+                                    [attr.aria-expanded]="isExpanded(order.no)"
+                                    [attr.aria-label]="'Show forms in order ' + order.no"
+                                    (click)="toggleExpand(order.no)"
+                                >
+                                    <img src="/assets/icons/chevron-right-muted.svg" alt="chevron-right" class="chevron-right-icon" width="16" height="16"/>
+                                </button>
+                            </td>
+
+                            <!-- Order number -->
+                            <td>
+                                <b>{{ order.no }}</b>
+                            </td>
+
+                            <!-- Filer link -->
+                            <td>
+                                <a
+                                    class="flink"
+                                    [routerLink]="['/taxseer/filers', getFilerId(order.filer)]"
+                                    [queryParams]="{ tab: 'orders' }"
+                                >
+                                    {{ order.filer }}
+                                </a>
+                                <div class="small muted">
+                                    {{ getFormKeys(order.forms) }}
+                                </div>
+                            </td>
+
+                            <!-- Placed date -->
+                            <td>{{ order.placed }}</td>
+
+                            <!-- Tax year -->
+                            <td>{{ order.year }}</td>
+
+                            <!-- Forms count -->
+                            <td class="num">{{ getFormTotal(order.forms) }}</td>
+
+                            <!-- Amount -->
+                            <td class="num">${{ order.amt | number:'1.2-2' }}</td>
+
+                            <!-- Status pill -->
+                            <td>
+                                <mat-chip
+                                    class="pill"
+                                    [ngClass]="{
+                                        'p-ok': order.status === 'accepted',
+                                        'p-info': order.status === 'process',
+                                        'p-err': order.status === 'rejected'
+                                    }"
+                                >
+                                    @if (order.status === 'rejected') {
+                                        {{ order.rej }} rejected
+                                    } @else if (order.status === 'process') {
+                                        In process
+                                    } @else if (order.status === 'accepted') {
+                                        Accepted
+                                    }
+                                </mat-chip>
+
+                                @if (order.status === 'rejected') {
+                                    <div class="small muted">
+                                        {{ getFormTotal(order.forms) - (order.rej || 0) }} accepted
+                                    </div>
+                                }
+                            </td>
+
+                            <!-- Recipient copies -->
+                            <td class="small">{{ order.copies }}</td>
+
+                            <!-- Download files -->
+                            <td class="[text-align:right] [white-space:nowrap]">
+                                @if (order.files === 'ready') {
+                                    <button mat-button
+                                        type="button"
+                                        class="btn sm border border-gray-200"
+                                        (click)="showToast('Downloading files for order ' + order.no)"
+                                    >
+                                        <img src="/assets/icons/download-ink.svg" alt="download" class="download-icon" width="16" height="16" />
+                                        Download
+                                    </button>
+                                } @else if (order.files === 'expired') {
+                                    <span class="small muted">Expired</span>
+                                } @else if (order.files === 'none') {
+                                    <span class="small muted">After acceptance</span>
+                                }
+                            </td>
+                        </tr>
+
+                        @if (isExpanded(order.no)) {
+                        <!-- Expanded Forms Detail Row -->
+                        <tr class="more">
+                            <td></td>
+                            <td colspan="9" class="pt-2">
+                                <table class="mini">
+                                    <thead>
+                                        <tr>
+                                            <th>Form</th>
+                                            <th>Recipient</th>
+                                            <th>TIN</th>
+                                            <th class="num">Box 1</th>
+                                            <th>Status</th>
+                                            <th class="[text-align:right]"></th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        @for (item of getDetailRows(order); track item.name + item.form) {
+                                            <tr>
+                                                <td class="pt-2">{{ item.form }}</td>
+                                                <td class="pt-2">{{ item.name }}</td>
+                                                <td class="pt-2">{{ item.tin }}</td>
+                                                <td class="num pt-2">${{ item.amount | number:'1.2-2' }}</td>
+                                                <td class="pt-2">
+                                                    <mat-chip
+                                                        class="pill"
+                                                        [ngClass]="{
+                                                            'p-err': item.isRejected,
+                                                            'p-info': order.status === 'process',
+                                                            'p-ok': !item.isRejected && order.status !== 'process'
+                                                        }"
+                                                    >
+                                                        {{ item.isRejected ? 'Rejected' : (order.status === 'process' ? 'Submitted' : 'Accepted') }}
+                                                    </mat-chip>
+
+                                                    @if (item.isRejected) {
+                                                        <div class="issue">
+                                                            Payee name and TIN don't match IRS records
+                                                        </div>
+                                                    }
+                                                </td>
+                                                <td class="[text-align:right] pt-2">
+                                                    @if (item.isRejected) {
+                                                        <button mat-button
+                                                            type="button"
+                                                            class="btn sm primary"
+                                                            (click)="showToast('Opening corrected form for ' + item.name)"
+                                                        >
+                                                            Fix and resubmit
+                                                        </button>
+                                                    } @else {
+                                                        <button mat-button
+                                                            type="button"
+                                                            class="btn sm ghost"
+                                                            (click)="showToast('Opening ' + item.form + ' for ' + item.name)"
+                                                        >
+                                                            View / print
+                                                        </button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+
+                                @if (getFormTotal(order.forms) > getDetailRows(order).length) {
+                                    <div class="small muted [margin-top:8px]">
+                                        Showing {{ getDetailRows(order).length }} of {{ getFormTotal(order.forms) }} forms.
+                                        <button mat-button
+                                            type="button"
+                                            class="btn link small"
+                                            (click)="showToast('Opening all forms in order ' + order.no)"
+                                        >
+                                            See all {{ getFormTotal(order.forms) }}
+                                        </button>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                        }
+                    } @empty {
+                        <!-- Empty state -->
+                        <tr>
+                            <td colspan="10" class="empty">
+                                No orders match these filters.
+                                <button mat-button
+                                    type="button"
+                                    class="btn sm [margin-left:8px]"
+                                   
+                                    (click)="clearFilters()"
+                                >
+                                    Clear filters
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="foot-note border-t border-gray-200">
+            <span>Amounts include federal e-file, state filing and recipient copy delivery.</span>
+            <span>Files stay available for 90 days after acceptance; prepare them again from the filer's Downloads tab.</span>
+        </div>
+    </section>
+
+    <!-- Toast Notification -->
+    <div
+        class="toast"
+        [class.show]="toastVisible"
+        role="status"
+        aria-live="polite"
+    >
+        {{ toastMessage }}
+    </div>
+</main>

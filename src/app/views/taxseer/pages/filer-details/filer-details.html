@@ -1,0 +1,1008 @@
+@if (filer(); as f) {
+<header class="wiz-head bg-(--paper) border-b border-(--line)">
+  <div class="inner mx-auto pt-4 px-6 pb-0 max-[700px]:px-3.5">
+    <div class="fh flex items-center justify-between gap-4 flex-wrap">
+      <div class="fh-switch flex items-center gap-1.5 min-w-0">
+        <div class="switch-wrap relative min-w-0">
+          <button 
+            class="fh-name flex items-center gap-2.5 border border-transparent rounded-lg bg-transparent py-1 px-2 text-left text-inherit hover:border-(--line) hover:bg-(--hover) [&_svg]:flex-none [&_svg]:text-(--ink-3) [&_img]:flex-none [&_img]:text-(--ink-3)"
+            type="button" aria-haspopup="listbox" [attr.aria-expanded]="switchOpen()" (click)="toggleSwitch()">
+            <span>
+              <span class="fh-title block text-[22px] font-semibold tracking-[-0.01em]">{{ f.name }}</span>
+
+              <span class="fh-sub block text-[13px] text-(--ink-3)">
+                EIN {{ formatEin(f.ein) }}
+                · {{ f.address }}, {{ f.city }}, {{ f.state }} {{ f.zip }}
+              </span>
+            </span>
+            <!-- <img src="/assets/icons/chevron-down-muted.svg" alt="chevron-down" class="chevron-down-icon" width="16"
+              height="16" /> -->
+              <img src="/assets/icons/chevron-down-muted.svg" alt="chevron-down" class="chevron-down-icon" width="16" height="16" />
+          </button>
+
+          @if (switchOpen()) {
+          <div
+            class="fh-pop absolute left-0 top-[calc(100%+6px)] z-40 w-100 p-2 border border-(--line) rounded-[10px] bg-(--paper) shadow-[0_12px_30px_rgba(23,33,46,0.18)] max-[700px]:w-[92vw]">
+            <input matInput class="search pop-search w-full min-w-0" type="search"
+              placeholder="Find a filer by name or EIN" aria-label="Find a filer" [ngModel]="switchSearch()"
+              (ngModelChange)="switchSearch.set($event)" />
+
+            <div class="fh-list max-h-80 mt-1.5 overflow-auto" role="listbox" aria-label="Filers">
+              @for (item of switchResults(); track item.id) {
+              <button
+                class="fh-opt flex flex-col items-start w-full border-0 rounded-md bg-transparent py-2 px-2.5 text-left text-inherit hover:bg-(--navy-tint) aria-selected:bg-(--navy-tint) [&_b]:font-semibold"
+                type="button" role="option" [attr.aria-selected]="item.id === f.id" (click)="selectFiler(item)">
+                <b>{{ item.name }}</b>
+                <span class="small muted">
+                  EIN {{ formatEin(item.ein) }} · {{ item.city }}, {{ item.state }}
+                </span>
+              </button>
+              } @empty {
+              <div class="small muted no-match p-2.5">No match</div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      <div class="fh-actions flex items-center gap-2 flex-wrap max-[700px]:justify-start">
+        <button mat-button class="btn disabled:opacity-[0.45] disabled:bg-(--paper) border border-gray-200" type="button"
+          [disabled]="filerIndex() === 0" [title]="prevName() ? 'Previous: ' + prevName() + '  ( [ )' : ''"
+          (click)="move(-1)">
+          <img src="/assets/icons/chevron-left-ink-22.svg" alt="chevron-left" class="chevron-left-icon" width="16"
+            height="16" />
+          Previous filer
+        </button>
+        <button mat-button class="btn disabled:opacity-[0.45] disabled:bg-(--paper) border border-gray-200" type="button"
+          [disabled]="isLastFiler()" [title]="nextName() ? 'Next: ' + nextName() + '  ( ] )' : ''" (click)="move(1)">
+          Next filer
+          <img src="/assets/icons/chevron-right-ink-22.svg" alt="chevron-right" class="chevron-right-icon" width="16"
+            height="16" />
+        </button>
+      </div>
+    </div>
+
+    @if (f.warning) {
+    <div class="callout warn filer-warning mt-2.5">
+      {{ f.warning }}
+      <button mat-button class="btn link disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+        (click)="openEdit()">Fix it</button>
+    </div>
+    }
+
+    <nav
+      class=" mt-3.5 [&_a[mat-tab-link]]:inline-flex [&_a[mat-tab-link]]:items-center [&_a[mat-tab-link]]:gap-2 [&_a[mat-tab-link]]:pt-2.5 [&_a[mat-tab-link]]:px-3.5 [&_a[mat-tab-link]]:pb-2.75 [&_a[mat-tab-link]]:text-sm [&_a[mat-tab-link][aria-selected=true]]:font-semibold"
+      mat-tab-nav-bar [tabPanel]="filerTabPanel" aria-label="Filer sections">
+      @for (item of tabs; track item.id) {
+      <a mat-tab-link class="" [active]="tab() === item.id" href="#"
+        (click)="$event.preventDefault(); setTab(item.id)">
+        {{ item.label }}
+        @if (tabCount()[item.id]; as count) {
+        <span
+          class="count min-w-0 h-auto m-0 py-0 px-1.75 rounded-[10px] text-xs font-semibold bg-(--navy-tint) text-(--navy)">{{
+          count }}</span>
+        }
+      </a>
+      }
+    </nav>
+  </div>
+</header>
+
+<mat-tab-nav-panel #filerTabPanel>
+  <main class="page max-[700px]:px-3.5">
+    @switch (tab()) {
+    @case ('filer') {
+
+    <!-- ========== dashboard summary card ========== -->
+    <div class="tiles filer-tiles mb-4 max-[1000px]:grid-cols-2 max-[700px]:grid-cols-1">
+      @for (tile of tiles(); track tile.label) {
+      <button mat-button class="tile border border-gray-200" type="button" [class.warn]="tile.warn" (click)="jump(tile.tab, tile.status)">
+        <span class="v">{{ tile.value }}</span>
+        <span class="small muted">
+          {{ tile.label }}@if (tile.rejected) {,
+          <b class="rej text-(--red)">{{ tile.rejected }} rejected</b>}
+        </span>
+      </button>
+      }
+    </div>
+
+    <div class="dash-grid grid grid-cols-2 gap-4 max-[1000px]:grid-cols-2 max-[700px]:grid-cols-1">
+
+      <!-- ========== Taxpayer Identification Section ========== -->
+      <mat-card appearance="outlined" class="card">
+        <mat-card-header class="card-h pb-4">
+          <mat-card-title>Taxpayer identification</mat-card-title>
+          <button mat-stroked-button type="button" (click)="openEdit()">Edit</button>
+        </mat-card-header>
+
+        <mat-card-content>
+          <dl
+            class="dl grid grid-cols-[200px_1fr] gap-x-4 gap-y-2.5 m-0 py-3.5 px-4.5 max-[700px]:grid-cols-1 [&_dt]:text-(--ink-3) [&_dt]:text-[13px] [&_dd]:m-0 [&_dd]:wrap-anywhere">
+            <dt>TIN type</dt>
+            <dd>EIN</dd>
+            <dt>EIN</dt>
+            <dd>{{ formatEin(f.ein) }}</dd>
+            <dt>TIN masking on recipient copies</dt>
+            <dd>{{ f.mask ? 'Yes' : 'No' }}</dd>
+          </dl>
+          <p class="card-note m-0 pt-0 px-4.5 pb-3.5 text-[12.5px] text-(--ink-3)"> Name and EIN must
+            match IRS records exactly, or returns are rejected. </p>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ========== Name and Address Section ========== -->
+      <mat-card appearance="outlined" class="card">
+        <mat-card-header class="card-h pb-4">
+          <mat-card-title>Name and address</mat-card-title>
+          <button mat-stroked-button type="button" (click)="openEdit()">
+            Edit
+          </button>
+        </mat-card-header>
+
+        <mat-card-content>
+          <dl
+            class="dl grid grid-cols-[200px_1fr] gap-x-4 gap-y-2.5 m-0 py-3.5 px-4.5 max-[700px]:grid-cols-1 [&_dt]:text-(--ink-3) [&_dt]:text-[13px] [&_dd]:m-0 [&_dd]:wrap-anywhere">
+            <dt>Legal name</dt>
+            <dd>{{ f.name }}</dd>
+
+            <dt>Filer name 2</dt>
+            <dd>
+              @if (f.name2) {
+              {{ f.name2 }}
+              } @else {
+              <span class="muted">Not set</span>
+              }
+            </dd>
+
+            <dt>Address</dt>
+            <dd>
+              {{ f.address }}@if (f.address2) {, {{ f.address2 }}}
+              <br />{{ f.city }}, {{ f.state }} {{ f.zip }}
+            </dd>
+
+            <dt>Country</dt>
+            <dd>United States</dd>
+
+            <dt>Phone</dt>
+            <dd>
+              @if (f.phone) {
+              {{ f.phone }}
+              } @else {
+              <span class="muted">Not set</span>
+              }
+            </dd>
+          </dl>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ========== Contact and State Section ========== -->
+      <mat-card appearance="outlined" class="card">
+        <mat-card-header class="card-h pb-4">
+          <mat-card-title>Contact and state</mat-card-title>
+          <button mat-stroked-button type="button" (click)="openEdit()">Edit</button>
+        </mat-card-header>
+        <mat-card-content>
+          <dl
+            class="dl grid grid-cols-[200px_1fr] gap-x-4 gap-y-2.5 m-0 py-3.5 px-4.5 max-[700px]:grid-cols-1 [&_dt]:text-(--ink-3) [&_dt]:text-[13px] [&_dd]:m-0 [&_dd]:wrap-anywhere">
+            <dt>Contact email</dt>
+            <dd>
+              @if (f.email) {
+              {{ f.email }}
+              } @else {
+              <span class="muted">Not set</span>
+              }
+            </dd>
+
+            <dt>Payer state ID</dt>
+            <dd>
+              @if (f.stateId) {
+              {{ f.stateId }}
+              } @else {
+              <span class="muted">Not set</span>
+              }
+            </dd>
+          </dl>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ========== Forms Filed Before Section ========== -->
+      <mat-card appearance="outlined" class="card">
+        <mat-card-header class="card-h pb-4">
+          <mat-card-title>Forms filed before</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <mat-chip-set class="chip-row flex flex-wrap gap-1.5 py-3 px-4.5">
+            @for (form of f.formsUsed; track form) {
+            <mat-chip>{{ form }}</mat-chip>
+            } @empty {
+            <span class="muted">None yet</span>
+            }
+          </mat-chip-set>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    }
+
+    @case ('recipients') {
+    <div class="sec-h">
+      <!-- Search Input -->
+      <mat-form-field appearance="outline" class="search-field w-70 min-w-70 flex-[0_0_280px] bg-white rounded-md"
+        subscriptSizing="dynamic">
+        <input matInput type="search" placeholder="Name, city or last 4 of TIN" aria-label="Find recipient"
+          [ngModel]="recipientSearch()" (ngModelChange)="recipientSearch.set($event)" />
+      </mat-form-field>
+
+      <!-- Header Action Buttons -->
+      <div class="head-actions">
+        <button mat-stroked-button type="button" (click)="goRecipients()">
+          W-9 requests
+        </button>
+
+        <button mat-stroked-button type="button" (click)="exportRecipients()">
+          Export
+        </button>
+
+        <button mat-stroked-button type="button" [disabled]="!recipientSelected().length" (click)="askCopyRecipients()">
+          Copy to another filer
+          @if (recipientSelected().length) {
+          ({{ recipientSelected().length }})
+          }
+        </button>
+
+        <button mat-stroked-button type="button" [disabled]="!recipientSelected().length" (click)="requestW9Selected()">
+          Request W-9
+          @if (recipientSelected().length) {
+          ({{ recipientSelected().length }})
+          }
+        </button>
+
+        <button mat-button color="warn" type="button" [disabled]="!recipientSelected().length"
+          (click)="askDeleteRecipients()">
+          Delete
+          @if (recipientSelected().length) {
+          ({{ recipientSelected().length }})
+          }
+        </button>
+
+        <button mat-flat-button color="primary" type="button" (click)="addRecipient()">
+          Add recipient
+        </button>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="table-scroll">
+        <table class="wide">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <input class="cbx" type="checkbox" aria-label="Select all" [checked]="allRecipientsSelected()"
+                  (change)="toggleAllRecipients()" />
+              </th>
+              <th>Recipient</th>
+              <th>TIN</th>
+              <th>Address</th>
+              <th>W-9</th>
+              <th class="num">Forms {{ year() }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of filteredRecipients(); track r.id) {
+            <tr [class.sel]="recipientSelected().includes(r.id)">
+              <td>
+                <input class="cbx" type="checkbox" [attr.aria-label]="'Select ' + r.name"
+                  [checked]="recipientSelected().includes(r.id)" (change)="toggleRecipient(r.id)" />
+              </td>
+              <td>
+                <b>{{ r.name }}</b>
+                <div class="small muted">
+                  {{ r.type === 'EIN' ? 'Business' : 'Individual' }}@if (r.email) { · {{ r.email }}}
+                </div>
+              </td>
+              <td>
+                {{ maskTin(r) }}
+                <div class="small muted">{{ r.type }}</div>
+              </td>
+              <td class="small">
+                {{ r.address }}<br />{{ r.city }}{{ r.city ? ', ' : '' }}{{ r.state }} {{ r.zip }}
+                @if (recipientIssues(r).length) {
+                <div class="issue">{{ recipientIssues(r).join(' · ') }}</div>
+                }
+              </td>
+              <td>
+                <mat-chip class="pill" [ngClass]="w9Pill(r.w9)">{{ r.w9 }}</mat-chip>
+                @if (r.w9 !== 'Submitted') {
+                <div>
+                  <button mat-button class="btn link small disabled:opacity-[0.45] disabled:bg-(--paper)"
+                    type="button" (click)="requestW9(r)">
+                    {{ r.w9 === 'Requested' ? 'Resend' : 'Request' }}
+                  </button>
+                </div>
+                }
+              </td>
+              <td class="num">{{ formsOfRecipient(r) || '–' }}</td>
+              <td class="row-actions text-right whitespace-nowrap">
+                @if (recipientIssues(r).length) {
+                <button mat-button class="btn sm danger-text disabled:opacity-[0.45] disabled:bg-(--paper) border border-gray-200"
+                  type="button" (click)="editRecipient(r)">Fix</button>
+                } @else {
+                <button mat-button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+                  (click)="editRecipient(r)">Edit</button>
+                }
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="7" class="empty">
+                {{ recipientSearch() ? 'No recipients match.' : 'No recipients for this filer yet.' }}
+                <button mat-button class="btn sm primary disabled:opacity-[0.45] disabled:bg-(--paper)"
+                  type="button" (click)="addRecipient()">Add recipient</button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    }
+
+    @case ('filings') {
+    <section class="card">
+      <div class="ftool flex items-center gap-3.5 flex-wrap py-3 px-4 border-b border-(--line-2)">
+        <label class="yr">
+          <span class="small muted">Tax year</span>
+          <mat-select class="sel-st year" [ngModel]="year()" (ngModelChange)="setYear($event)">
+            @for (y of years; track y) {
+            <mat-option [value]="y">{{ y }}</mat-option>
+            }
+          </mat-select>
+        </label>
+
+        <label class="yr">
+          <span class="small muted">Form</span>
+          <mat-select class="sel-st form" [ngModel]="formFilter()" (ngModelChange)="formFilter.set($event)">
+            <mat-option value="all">All forms</mat-option>
+            @for (form of formsInYear(); track form) {
+            <mat-option [value]="form">{{ form }}</mat-option>
+            }
+          </mat-select>
+        </label>
+
+        <input matInput class="search form-search min-w-62.5 h-9 max-[640px]:min-w-0 max-[640px]:w-full"
+          type="search" placeholder="Recipient name or last 4 of TIN" aria-label="Search forms"
+          [ngModel]="filingSearch()" (ngModelChange)="filingSearch.set($event)" />
+
+        <span class="grow flex-1"></span>
+
+        <button mat-button class="btn sm disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+          (click)="toast('Form 8809 extension request opened for ' + f.name)">
+          Apply for extension (8809)
+        </button>
+      </div>
+
+      <div
+        class="pipe grid grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1fr)] border-b border-(--line) max-[1000px]:grid-cols-3"
+        role="tablist" aria-label="Form status">
+        @for (step of pipeRows(); track step.status) {
+          <!-- abc -->
+        <button
+          class="pstep relative border-0 border-b-[3px] border-b-transparent bg-(--paper) py-3 pr-4 pl-5.5 text-left flex flex-col gap-px text-inherit hover:bg-(--hover) aria-selected:bg-[#f3f6fb] aria-selected:border-b-(--navy) max-[1000px]:border-r max-[1000px]:border-r-(--line-2) after:content-[''] after:absolute after:-right-1.5 after:top-1/2 after:w-2.75 after:h-2.75 after:bg-inherit after:border-t after:border-r after:border-(--line) after:-translate-y-1/2 after:rotate-45 after:z-1 [&:nth-child(5)::after]:hidden max-[1000px]:after:hidden rounded-none"
+          type="button" role="tab" [attr.aria-selected]="status() === step.status" (click)="setStatus(step.status)">
+          <span class="pn text-[22px] font-semibold leading-[1.15]">{{ step.count }}</span>
+          <span class="pl font-semibold text-sm text-(--navy)">{{ step.status }}</span>
+          <span class="ph text-xs text-(--ink-3)">{{ step.hint }}</span>
+        </button>
+        <!-- abc -->
+        }
+
+        <button
+          class="pstep prej relative border-0 border-b-[3px] border-b-transparent border-l border-l-(--line) bg-(--paper) py-3 pr-4 pl-5.5 text-left flex flex-col gap-px text-inherit hover:bg-(--hover) aria-selected:bg-[#f3f6fb] aria-selected:border-b-(--red) max-[1000px]:border-r max-[1000px]:border-r-(--line-2) after:hidden rounded-none"
+          [class.hot]="rejectedCount() > 0" type="button" role="tab" [attr.aria-selected]="status() === 'Rejected'"
+          (click)="setStatus('Rejected')">
+          <span class="pn text-[22px] font-semibold leading-[1.15] text-(--red)">{{ rejectedCount() }}</span>
+          <span class="pl font-semibold text-sm text-(--red)">Rejected</span>
+          <span class="ph text-xs text-(--ink-3)">{{ rejectedCount() ? 'Fix and resubmit' : 'None' }}</span>
+        </button>
+      </div>
+
+      <div
+        class="pbar flex justify-between items-center gap-3 py-2.5 px-4 min-h-12 bg-(--soft) border-b border-(--line-2)">
+        <span class="small muted">{{ stepHelp[status()] }}</span>
+        @if (status() === 'Completed') {
+        <button mat-button class="btn sm primary disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+          [disabled]="!selectedCompleted()" (click)="addSelectedToCart()">
+          Add @if (selectedCompleted()) { {{ selectedCompleted() }} } to cart
+        </button>
+        }
+      </div>
+
+      <div class="table-scroll">
+        <table class="wide">
+          <thead>
+            <tr>
+              @if (status() === 'Completed') {
+              <th class="col-check">
+                <input class="cbx" type="checkbox" aria-label="Select all" [checked]="allFilingsSelected()"
+                  (change)="toggleAllFilings()" />
+              </th>
+              }
+              <th>Form</th>
+              <th>Recipient</th>
+              <th>TIN</th>
+              <th class="num">Box 1</th>
+              <th>Status</th>
+              <th>Last change</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of filteredFilings(); track row.id) {
+            <tr>
+              @if (status() === 'Completed') {
+              <td>
+                <input class="cbx" type="checkbox" [attr.aria-label]="'Select ' + row.recipient"
+                  [checked]="filingSelected().includes(row.id)" (change)="toggleFiling(row.id)" />
+              </td>
+              }
+              <td><b>{{ row.form }}</b></td>
+              <td>{{ row.recipient }}</td>
+              <td>{{ row.tin }}</td>
+              <td class="num">
+                @if (row.amount !== null) { ${{ money(row.amount) }} } @else { <span class="muted">–</span> }
+              </td>
+              <td>
+                <mat-chip class="pill border-0" [ngClass]="pillFor(row.status)">{{ row.status }}</mat-chip>
+                @if (row.issue) { <div class="note">{{ row.issue }}</div> }
+                @if (row.order) { <div class="small muted">Order {{ row.order }} </div> }
+              </td>
+              <td class="small muted">{{ row.edited }}</td>
+              <td class="row-actions text-right whitespace-nowrap">
+                @if (row.status === 'Pending' || row.status === 'Completed') {
+                <button mat-button class="btn sm disabled:opacity-[0.45] disabled:bg-(--paper)"
+                  [class.primary]="row.status === 'Pending'" [class.ghost]="row.status === 'Completed'" type="button"
+                  (click)="startFiling('manual')">
+                  {{ row.status === 'Pending' ? 'Finish' : 'Edit' }}
+                </button>
+                }
+                @if (row.status === 'In cart') {
+                <button mat-button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+                  (click)="removeFromCart(row.id)">Remove from cart</button>
+                }
+                @if (row.status === 'Accepted') {
+                <button mat-button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+                  (click)="toast('Filing a corrected ' + row.form + ' for ' + row.recipient)">Correct</button>
+                }
+                <button mat-button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+                  (click)="toast('Preview of ' + row.form + ' for ' + row.recipient)">Preview</button>
+                @if (row.status === 'Pending' || row.status === 'Completed') {
+                <button mat-button class="btn sm ghost danger-text disabled:opacity-[0.45] disabled:bg-(--paper)"
+                  type="button" [attr.aria-label]="'Delete form for ' + row.recipient"
+                  (click)="askDeleteFiling(row.id)">Delete</button>
+                }
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="8" class="empty">
+                No {{ status().toLowerCase() }} forms for {{ year() }}@if (formFilter() !== 'all') { ({{ formFilter()
+                }}) }@if (filingSearch()) { matching “{{ filingSearch() }}”}.
+                <button mat-button class="btn sm primary disabled:opacity-[0.45] disabled:bg-(--paper)"
+                  type="button" (click)="chooserOpen.set(true)">New filing</button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    }
+
+    @case ('orders') {
+    <div class="sec-h">
+      <span class="small muted">Statuses update automatically as the IRS and SSA respond.</span>
+      <div class="head-actions">
+        <button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper) border border-gray-200 bg-white" type="button"
+          (click)="goOrders()">All orders for this filer</button>
+        <button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper) border border-gray-200 bg-white" type="button"
+          (click)="toast('Orders exported')">Export</button>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="table-scroll">
+        <table class="wide">
+          <thead>
+            <tr>
+              <th class="col-check"></th>
+              <th>Order</th>
+              <th>Placed</th>
+              <th>Tax year</th>
+              <th class="num">Forms</th>
+              <th class="num">Amount</th>
+              <th>IRS / SSA status</th>
+              <th>Recipient copies</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of filerOrders(); track order.id) {
+            <tr>
+              <td>
+                <button class="exp" type="button" [attr.aria-expanded]="openOrders().includes(order.id)"
+                  [attr.aria-label]="'Show forms in ' + order.id" (click)="toggleOrder(order.id)">
+                  <img src="/assets/icons/chevron-right-muted.svg" alt="chevron-right" class="chevron-right-icon"
+                    width="16" height="16" />
+                </button>
+              </td>
+              <td><b>{{ order.id }}</b></td>
+              <td>{{ order.placedDate }}</td>
+              <td>{{ order.taxYear }}</td>
+              <td class="num">{{ order.forms }}</td>
+              <td class="num">${{ money(order.amount) }}</td>
+              <td>
+                <mat-chip class="pill" [ngClass]="orderPill(order.status)">{{ orderLabel(order.status) }}</mat-chip>
+              </td>
+              <td class="small">{{ order.recipientCopies }}</td>
+              <td class="row-actions text-right whitespace-nowrap">
+                <button mat-button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+                  (click)="toast('Downloading forms in ' + order.id)">Download forms</button>
+              </td>
+            </tr>
+
+            @if (openOrders().includes(order.id)) {
+            <tr class="more">
+              <td></td>
+              <td colspan="8">
+                <table class="mini mt-1.5 border-separate">
+                  <thead>
+                    <tr>
+                      <th>Form</th>
+                      <th>Recipient</th>
+                      <th>TIN</th>
+                      <th class="num">Box 1</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of formsOfOrder(order.id); track row.id) {
+                    <tr>
+                      <td>{{ row.form }}</td>
+                      <td>{{ row.recipient }}</td>
+                      <td>{{ row.tin }}</td>
+                      <td class="num">${{ money(row.amount) }}</td>
+                      <td><mat-chip class="pill p-ok">{{ row.status }}</mat-chip></td>
+                      <td class="row-actions text-right whitespace-nowrap">
+                        <button mat-button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper)"
+                          type="button" (click)="toast('Viewing ' + row.form + ' for ' + row.recipient)">View /
+                          print</button>
+                      </td>
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            }
+            } @empty {
+            <tr>
+              <td colspan="9" class="empty">No orders yet for this filer.</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    }
+
+    @case ('status') {
+    <div class="sec-h">
+      <!-- <mat-form-field appearance="outline" class="yr"> -->
+        <label class="yr">
+          <span class="small muted">Tax&nbsp;year</span>
+          <mat-select [ngModel]="year()" (ngModelChange)="setYear($event)" class="sel-st year">
+          @for (y of years; track y) {
+          <mat-option [value]="y">{{ y }}</mat-option>
+          }
+        </mat-select></label>
+        
+      <!-- </mat-form-field> -->
+      <span class="small muted">
+        Every form for {{ year() }}, by where it is in the filing process. Click a number to see those forms.
+      </span>
+    </div>
+
+    @if (matrix().length) {
+    <section class="card">
+      <div class="table-scroll">
+        <table class="wide">
+          <thead>
+            <tr>
+              <th>Form</th>
+              @for (step of steps; track step.status) {
+              <th class="num">{{ step.status }}</th>
+              }
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of matrix(); track row.form) {
+            <tr>
+              <td><b>{{ row.form }}</b></td>
+              @for (cell of row.counts; track cell.label) {
+              <td class="num">
+                @if (cell.value) {
+                <button mat-button
+                  class="link-num border-0 rounded bg-transparent py-0.5 px-1.5 font-semibold text-(--navy-2) hover:bg-(--navy-tint)"
+                  [class.rej]="cell.status === 'Rejected'" type="button"
+                  (click)="jumpFromMatrix(cell.status, row.form)">{{ cell.value }}</button>
+                } @else { <span class="muted">–</span> }
+              </td>
+              }
+              <td class="num"><b>{{ row.total }}</b></td>
+            </tr>
+            }
+
+            <tr class="totals">
+              <td>All forms</td>
+              @for (cell of matrixTotals(); track cell.label) {
+              <td class="num">{{ cell.value || '–' }}</td>
+              }
+              <td class="num">{{ yearFilings().length }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    } @else {
+    <div class="card empty">
+      No forms for {{ year() }} yet.
+      <button mat-button class="btn sm primary disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+        (click)="chooserOpen.set(true)">New filing</button>
+    </div>
+    }
+    }
+
+    @case ('downloads') {
+    <section class="card download-bar flex items-center gap-3 flex-wrap py-3.5 px-4.5 mb-4">
+      
+        <label class="yr">
+          <span class="small muted">Tax&nbsp;year</span>
+          <mat-select [ngModel]="year()" (ngModelChange)="setYear($event)" class="sel-st year">
+            @for (y of years; track y) {
+            <mat-option [value]="y">{{ y }}</mat-option>
+            }
+          </mat-select>
+        </label>
+
+      <b class="new-download ml-2">New download</b>
+
+      <mat-select class="sel-st type" aria-label="What to download" [ngModel]="downloadType()"
+        (ngModelChange)="downloadType.set($event)">
+        @for (type of downloadTypes; track type) {
+        <mat-option [value]="type">{{ type }}</mat-option>
+        }
+      </mat-select>
+
+      <span class="small muted">{{ acceptedForYear() }} filed forms for {{ year() }}, in one zip file</span>
+
+      <button mat-button class="btn sm primary push disabled:opacity-[0.45] disabled:bg-(--paper) ml-auto"
+        type="button" [disabled]="!acceptedForYear()" (click)="prepareDownload()">
+        Prepare download
+      </button>
+    </section>
+
+    <section class="card">
+      <div class="table-scroll">
+        <table class="wide">
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>By</th>
+              <th>Contents</th>
+              <th class="num">Forms</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of downloads(); track item.id) {
+            <tr>
+              <td>{{ item.date }}</td>
+              <td>{{ item.by }}</td>
+              <td>{{ item.type }}</td>
+              <td class="num">{{ item.forms }}</td>
+              <td>
+                <mat-chip class="pill" [ngClass]="downloadPill(item.status)">{{ item.status }}</mat-chip>
+                @if (item.status === 'Expired') {
+                <div class="small muted">Prepare it again to download</div>
+                }
+              </td>
+              <td class="row-actions text-right whitespace-nowrap">
+                @if (item.status === 'Ready') {
+                <button mat-button class="btn sm disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+                  (click)="toast('Downloading ' + item.type)">Download zip</button>
+                }
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="6" class="empty">No downloads yet.</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    }
+
+    @case ('summary') {
+    <div class="sec-h">
+      <div class="seg-group flex items-center gap-2.5 flex-wrap">
+        <div class="yr flex gap-1.5">
+          <span id="tax-year-label" class="small muted text-xs text-(--ink-3)">Tax year</span>
+          <mat-select class="sel-st year" aria-labelledby="tax-year-label" [ngModel]="year()"
+            (ngModelChange)="setYear($event)">
+            @for (y of years; track y) {
+            <mat-option [value]="y">{{ y }}</mat-option>
+            }
+          </mat-select>
+        </div>
+
+        <div class="seg" role="group" aria-label="Report">
+          <button class="rounded-none" mat-button type="button" [attr.aria-pressed]="summaryMode() === 'filed'"
+            (click)="summaryMode.set('filed')">Filed</button>
+          <button class="rounded-none" mat-button type="button" [attr.aria-pressed]="summaryMode() === 'pending'"
+            (click)="summaryMode.set('pending')">Not filed yet</button>
+        </div>
+      </div>
+
+      <button mat-button class="btn sm ghost disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+        (click)="exportFilings()">Export report</button>
+    </div>
+
+    @if (!summaryRows().empty) {
+    <section class="card">
+      <div class="table-scroll">
+        <table class="wide">
+          <thead>
+            <tr>
+              <th>Form</th>
+              <th class="num">Forms</th>
+              <th class="num">Recipients</th>
+              <th class="num">Total Box 1</th>
+              <th class="num">Federal withheld</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of summaryRows().rows; track row.form) {
+            <tr>
+              <td><b>{{ row.form }}</b></td>
+              <td class="num">{{ row.count }}</td>
+              <td class="num">{{ row.recipients }}</td>
+              <td class="num">${{ row.amount }}</td>
+              <td class="num">$0.00</td>
+            </tr>
+            }
+
+            <tr class="totals">
+              <td>Total, tax year {{ year() }}</td>
+              <td class="num">{{ summaryRows().total.count }}</td>
+              <td class="num">{{ summaryRows().total.recipients }}</td>
+              <td class="num">${{ summaryRows().total.amount }}</td>
+              <td class="num">$0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    } @else {
+    <div class="card empty">
+      {{ summaryMode() === 'filed' ? 'Nothing filed for ' + year() + ' yet.' : 'Everything for ' + year() + ' has been
+      filed.' }}
+    </div>
+    }
+    }
+    }
+  </main>
+</mat-tab-nav-panel>
+
+@if (chooserOpen()) {
+<button mat-button type="button" class="scrim show" aria-label="Close new filing chooser"
+  (click)="chooserOpen.set(false)"></button>
+
+<div class="chooser" role="dialog" aria-modal="true" aria-labelledby="chTitle">
+  <div class="ch-h">
+    <div>
+      <h2 id="chTitle">New filing for {{ f.name }}</h2>
+      <div class="sub">EIN {{ formatEin(f.ein) }} · {{ f.city }}, {{ f.state }}</div>
+    </div>
+    <button mat-button class="x" type="button" aria-label="Close" (click)="chooserOpen.set(false)">
+      <img src="/assets/icons/close-white.svg" alt="close" class="close-icon" width="15" height="15" />
+    </button>
+  </div>
+  <div class="ch-b">
+    <button mat-button class="choice main border border-gray-200" type="button" (click)="startFiling('manual')">
+      <span class="ci">
+        <img src="/assets/icons/edit-white.svg" alt="edit" class="edit-icon" width="22" height="22" />
+      </span>
+      <span>
+        <b>Manual entry</b>
+        <span class="d">Pick recipients and type the amounts. Best for a handful of forms.</span>
+      </span>
+      <span class="go"><kbd>N</kbd></span>
+    </button>
+    <button mat-button class="choice alt border border-gray-200" type="button" (click)="startFiling('bulk')">
+      <span class="ci">
+        <img src="/assets/icons/spreadsheet-navy.svg" alt="spreadsheet" class="spreadsheet-icon" width="22"
+          height="22" />
+      </span>
+      <span>
+        <b class="text-taxseer-ink">Bulk import</b>
+        <span class="d">Upload the TaxSeer Excel template or your own file.</span>
+      </span>
+      <span class="go"><kbd>I</kbd></span>
+    </button>
+    <div class="foot">Next you'll choose the tax year and form. Templates for bulk import are on the upload step.</div>
+  </div>
+</div>
+}
+
+@if (dialog(); as dlg) {
+<button mat-button type="button" class="scrim show" aria-label="Close dialog" (click)="closeDialog()"></button>
+
+<div class="modal" role="dialog" aria-modal="true" [attr.aria-labelledby]="'dlgTitle'">
+  <div class="db">
+    <h2 id="dlgTitle">{{ dlg.title }}</h2>
+    @if (dlg.body) { <p class="muted">{{ dlg.body }}</p> }
+
+    @if (dlg.kind === 'copy') {
+    <div class="f">
+      <label for="cpSel">Copy to</label>
+      <mat-select id="cpSel" [ngModel]="copyTarget()" (ngModelChange)="copyTarget.set($event)">
+        @for (item of store.filers(); track item.id) {
+        @if (item.id !== f.id) {
+        <mat-option [value]="item.id">{{ item.name }} · EIN {{ formatEin(item.ein) }}</mat-option>
+        }
+        }
+      </mat-select>
+      <span class="hint">Recipients already saved for that filer (same TIN) are skipped.</span>
+    </div>
+    }
+  </div>
+  <div class="df">
+    <button mat-button class="btn disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+      (click)="closeDialog()">Cancel</button>
+    <button mat-button class="btn primary disabled:opacity-[0.45] disabled:bg-(--paper)"
+      [class.danger]="dlg.kind === 'delete' || dlg.kind === 'delete-form'" type="button" (click)="confirmDialog()">{{
+      dlg.ok }}</button>
+  </div>
+</div>
+}
+
+@if (editOpen()) {
+<button mat-button type="button" class="scrim show" aria-label="Close edit panel" (click)="closeEdit()"></button>
+
+<aside class="panel show" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+  <header>
+    <h2 id="panelTitle">Edit filer</h2>
+    <button mat-button class="icon-btn" type="button" aria-label="Close" (click)="closeEdit()">
+      <img src="/assets/icons/close-muted.svg" alt="close" class="close-icon" width="16" height="16" />
+    </button>
+  </header>
+
+  <div class="pb">
+    @if (f.filed || f.pending) {
+    <div class="callout panel-callout">
+      Changes apply to pending forms and new filings. Forms already filed keep the
+      details they were filed with; correct those with a corrected return.
+    </div>
+    }
+
+    <fieldset>
+      <legend>Payer</legend>
+      <div class="f">
+        <label for="fl-name">Legal name</label>
+        <input matInput id="fl-name" [ngModel]="editForm.name" (ngModelChange)="editForm.name = $event"
+          [attr.aria-invalid]="editErrors().name ? 'true' : null" />
+        @if (editErrors().name) { <span class="err">{{ editErrors().name }}</span> }
+        <span class="hint">As registered with the IRS for this EIN.</span>
+      </div>
+      <div class="row2 max-[640px]:grid-cols-1">
+        <div class="f">
+          <label for="fl-ein">EIN</label>
+          <input matInput id="fl-ein" inputmode="numeric" placeholder="12-3456789" [value]="einDisplay()"
+            (input)="onEinInput($event)" [attr.aria-invalid]="editErrors().ein ? 'true' : null" />
+          @if (editErrors().ein) { <span class="err">{{ editErrors().ein }}</span> }
+        </div>
+        <div class="f">
+          <label for="fl-phone">Phone</label>
+          <input matInput id="fl-phone" type="tel" [ngModel]="editForm.phone"
+            (ngModelChange)="editForm.phone = $event" />
+          <span class="hint">Printed on the payer box of 1099s.</span>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Address</legend>
+      <div class="f">
+        <label for="fl-a1">Street address</label>
+        <input matInput id="fl-a1" [ngModel]="editForm.address" (ngModelChange)="editForm.address = $event"
+          [attr.aria-invalid]="editErrors().address ? 'true' : null" />
+        @if (editErrors().address) { <span class="err">{{ editErrors().address }}</span> }
+      </div>
+      <div class="f">
+        <label for="fl-a2">Suite (optional)</label>
+        <input matInput id="fl-a2" [ngModel]="editForm.address2" (ngModelChange)="editForm.address2 = $event" />
+      </div>
+      <div class="row3 max-[640px]:grid-cols-1">
+        <div class="f">
+          <label for="fl-city">City</label>
+          <input matInput id="fl-city" [ngModel]="editForm.city" (ngModelChange)="editForm.city = $event"
+            [attr.aria-invalid]="editErrors().city ? 'true' : null" />
+          @if (editErrors().city) { <span class="err">{{ editErrors().city }}</span> }
+        </div>
+        <div class="f">
+          <label for="fl-st">State</label>
+          <mat-select id="fl-st" [ngModel]="editForm.state" (ngModelChange)="editForm.state = $event">
+            <mat-option value="">Select</mat-option>
+            @for (state of states; track state) {
+            <mat-option [value]="state">{{ state }} · {{ stateNames[state] }}</mat-option>
+            }
+          </mat-select>
+          @if (editErrors().state) { <span class="err">{{ editErrors().state }}</span> }
+        </div>
+        <div class="f">
+          <label for="fl-zip">ZIP</label>
+          <input matInput id="fl-zip" inputmode="numeric" [ngModel]="editForm.zip"
+            (ngModelChange)="editForm.zip = $event" [attr.aria-invalid]="editErrors().zip ? 'true' : null" />
+          @if (editErrors().zip) { <span class="err">{{ editErrors().zip }}</span> }
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Filing details</legend>
+      <div class="row2 max-[640px]:grid-cols-1">
+        <div class="f">
+          <label for="fl-email">Contact email</label>
+          <input matInput id="fl-email" type="email" [ngModel]="editForm.email"
+            (ngModelChange)="editForm.email = $event" [attr.aria-invalid]="editErrors().email ? 'true' : null" />
+          @if (editErrors().email) { <span class="err">{{ editErrors().email }}</span> }
+          <span class="hint">Receives filing status updates.</span>
+        </div>
+        <div class="f">
+          <label for="fl-stno">Payer state ID</label>
+          <input matInput id="fl-stno" placeholder="MD 12345678" [ngModel]="editForm.stateId"
+            (ngModelChange)="editForm.stateId = $event" />
+          <span class="hint">Pre-fills Box 6 on state copies.</span>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+  <footer>
+    <button mat-button class="btn disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+      (click)="closeEdit()">Cancel</button>
+    <button mat-button class="btn primary disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+      (click)="saveEdit()">Save changes</button>
+  </footer>
+</aside>
+}
+
+@if (toastMsg()) {
+<div class="toast show" role="status" aria-live="polite">{{ toastMsg() }}</div>
+}
+} @else {
+<main class="page max-[700px]:px-3.5">
+  <div class="card empty">
+    Filer not found.
+    <button mat-button class="btn sm disabled:opacity-[0.45] disabled:bg-(--paper)" type="button"
+      (click)="backToFilers()">Back to filers</button>
+  </div>
+</main>
+}

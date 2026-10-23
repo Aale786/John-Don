@@ -1,0 +1,425 @@
+:host {
+    display: block;
+}
+
+
+/* =========================================================
+   TOP NAVIGATION
+   ========================================================= */
+
+.taxseer-top-nav {
+    position: sticky;
+    top: 0;
+
+    z-index: 50;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    background: #173f70;
+    color: #ffffff;
+
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+
+/* =========================================================
+   INNER
+   ========================================================= */
+
+.taxseer-top-nav__inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    width: 100%;
+    min-height: 56px;
+
+    padding: 0 24px;
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.taxseer-brand {
+    display: flex;
+    align-items: center;
+
+    flex-shrink: 0;
+
+    text-decoration: none;
+}
+
+
+.taxseer-brand__logo {
+    display: block;
+
+    width: auto;
+    height: 28px;
+
+    object-fit: contain;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.taxseer-navigation {
+    display: flex;
+    align-items: center;
+
+    gap: 4px;
+}
+
+
+.taxseer-navigation__link {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 38px;
+
+    padding: 0 12px;
+
+    border-radius: 6px;
+
+    color: rgba(255, 255, 255, 0.92);
+
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+
+    text-decoration: none;
+
+    transition:
+        background-color 160ms ease,
+        color 160ms ease;
+}
+
+
+.taxseer-navigation__link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+
+.taxseer-navigation__link--active {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   SPACER
+   ========================================================= */
+
+.taxseer-top-nav__spacer {
+    flex: 1 1 auto;
+}
+
+
+/* =========================================================
+   DESKTOP ACTIONS
+   ========================================================= */
+
+.taxseer-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+}
+
+
+/* =========================================================
+   BALANCE
+   ========================================================= */
+
+.taxseer-balance {
+    display: flex;
+    align-items: center;
+
+    gap: 4px;
+
+    color: #ffffff;
+
+    font-size: 14px;
+}
+
+
+.taxseer-balance__icon {
+    width: 16px;
+    height: 16px;
+
+    font-size: 16px;
+}
+
+
+/* =========================================================
+   CART
+   ========================================================= */
+
+.taxseer-cart {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 8px;
+
+    min-height: 38px;
+
+    padding: 0 16px;
+
+    border: 0;
+    border-radius: 6px;
+
+    background: #f4c62b;
+    color: #0f172a;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
+
+    transition:
+        background-color 160ms ease,
+        transform 160ms ease;
+}
+
+
+.taxseer-cart:hover {
+    background: #ffd84b;
+
+    transform: translateY(-1px);
+}
+
+
+.taxseer-cart__icon {
+    width: 16px;
+    height: 16px;
+
+    font-size: 16px;
+}
+
+
+.taxseer-cart__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 22px;
+    height: 20px;
+
+    padding: 0 6px;
+
+    border-radius: 999px;
+
+    background: #0f172a;
+    color: #ffffff;
+
+    font-size: 12px;
+    line-height: 1;
+}
+
+
+/* =========================================================
+   THEME BUTTON
+   ========================================================= */
+
+.taxseer-theme-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: transparent;
+    color: #ffffff;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition: background-color 160ms ease;
+}
+
+
+.taxseer-theme-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+
+.taxseer-theme-button mat-icon {
+    width: 20px;
+    height: 20px;
+
+    font-size: 20px;
+}
+
+
+/* =========================================================
+   USER
+   ========================================================= */
+
+.taxseer-user {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.taxseer-user__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+    color: #173f70;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+.taxseer-user__name {
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   MOBILE MENU
+   ========================================================= */
+
+.taxseer-mobile-menu {
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+
+    margin-left: 8px;
+    padding: 0;
+
+    border: 0;
+    border-radius: 6px;
+
+    background: transparent;
+    color: #ffffff;
+
+    cursor: pointer;
+}
+
+
+.taxseer-mobile-menu:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+
+.taxseer-mobile-menu mat-icon {
+    width: 22px;
+    height: 22px;
+
+    font-size: 22px;
+}
+
+
+/* =========================================================
+   RESPONSIVE — navigation collapses into a drawer at 1000px,
+   matching the prototype's `.nav{display:none}` breakpoint.
+   ========================================================= */
+
+@media (max-width: 1000px) {
+    .taxseer-navigation {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+
+        gap: 2px;
+        padding: 8px 16px 14px;
+
+        background: #173f70;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+    }
+
+
+    .taxseer-top-nav--open .taxseer-navigation {
+        display: flex;
+    }
+
+
+    .taxseer-navigation__link {
+        min-height: 44px;
+
+        padding: 0 12px;
+    }
+
+
+    .taxseer-mobile-menu {
+        display: inline-flex;
+    }
+
+
+    .taxseer-actions {
+        gap: 10px;
+    }
+
+
+    .taxseer-user__name {
+        display: none;
+    }
+}
+
+
+@media (max-width: 640px) {
+    .taxseer-top-nav__inner {
+        gap: 12px;
+
+        padding: 0 14px;
+    }
+
+
+    .taxseer-brand__logo {
+        height: 26px;
+    }
+
+
+    .taxseer-balance {
+        display: none;
+    }
+
+
+    .taxseer-cart {
+        gap: 6px;
+
+        padding: 0 10px;
+    }
+
+
+    .taxseer-cart > span:not(.taxseer-cart__count) {
+        display: none;
+    }
+}

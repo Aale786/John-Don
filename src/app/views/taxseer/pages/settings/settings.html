@@ -1,0 +1,796 @@
+<div class="settings-page min-h-screen bg-[var(--canvas)] text-[var(--ink)]">
+
+    <main
+        class="settings-container mx-auto w-full px-4 py-6 sm:px-5 lg:px-5 max-[767px]:pt-[18px] max-[767px]:pb-6">
+
+        <!-- Header -->
+        <div class="head mb-5 max-[767px]:mb-4">
+            <h1 class="m-0 text-[24px] font-semibold leading-tight tracking-[-0.01em] text-[var(--ink)]">
+                Settings
+            </h1>
+
+            <p class="mt-1 text-sm text-[var(--ink-2)]">
+                Your profile, the people on this account, and what each role can do.
+            </p>
+        </div>
+
+        <!-- Tabs -->
+        <nav class=" mb-5 flex overflow-x-auto border-b border-[var(--line)]" mat-tab-nav-bar
+            [tabPanel]="settingsTabPanel" aria-label="Settings sections">
+            <a mat-tab-link class="ftab" [active]="section === 'account'" href="#"
+                (click)="$event.preventDefault(); setSection('account')">
+                My account
+            </a>
+
+            <a mat-tab-link class="ftab" [active]="section === 'users'" href="#"
+                (click)="$event.preventDefault(); setSection('users')">
+                Users
+                <span class="count">{{ userCount }}</span>
+            </a>
+
+            <a mat-tab-link class="ftab" [active]="section === 'roles'" href="#"
+                (click)="$event.preventDefault(); setSection('roles')">
+                Roles
+            </a>
+        </nav>
+
+        <mat-tab-nav-panel #settingsTabPanel>
+            <!-- ACCOUNT -->
+            @if (section === 'account') {
+
+            <div class="stack flex flex-col gap-4">
+
+                <!-- User summary -->
+                <section
+                    class="card profile flex items-center gap-[var(--sp-7)] py-[var(--sp-8)] px-[var(--sp-7)] max-[767px]:items-start max-[767px]:flex-wrap max-[480px]:gap-3">
+
+                    <div
+                        class="avatar-lg flex-none w-16 h-16 flex items-center justify-center rounded-full bg-[var(--navy)] !text-[color:var(--paper)] text-[22px] font-semibold max-[480px]:w-[52px] max-[480px]:h-[52px] max-[480px]:text-lg">
+                        {{ me.first.charAt(0) }}{{ me.last.charAt(0) }}
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                        <div
+                            class="profile-name !text-[color:var(--ink)] text-[20px] font-bold leading-[1.25] max-[480px]:text-[17px]">
+                            {{ me.first }} {{ me.last }}
+                        </div>
+
+                        <div class="small muted !text-[color:var(--ink-3)] max-w-[900px]">
+                            {{ me.email }}
+                        </div>
+                    </div>
+
+                    <mat-chip class="pill p-info max-[767px]:ml-[85px] max-[767px]:-mt-2">
+                        {{ roleName('accountant') }}
+                    </mat-chip>
+
+                </section>
+
+                <!-- Profile -->
+                <section class="card">
+
+                    <div class="card-h">
+                        <h2>Profile</h2>
+                    </div>
+
+                    <form class="cardbody" novalidate (input)="onAccountInput()">
+
+                        <div class="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-x-4">
+
+                            <div class="f">
+
+                                <label for="a-first">
+                                    First name
+                                </label>
+
+                                <input matInput id="a-first" name="first" type="text" [(ngModel)]="accountForm.first"
+                                    autocomplete="given-name" [attr.aria-invalid]="
+                                        accountErrors.first ? 'true' : null
+                                    " />
+
+                                @if (accountErrors.first) {
+                                <span class="err">
+                                    {{ accountErrors.first }}
+                                </span>
+                                }
+
+                            </div>
+
+                            <div class="f">
+
+                                <label for="a-last">
+                                    Last name
+                                </label>
+
+                                <input matInput id="a-last" name="last" type="text" [(ngModel)]="accountForm.last"
+                                    autocomplete="family-name" [attr.aria-invalid]="
+                                        accountErrors.last ? 'true' : null
+                                    " />
+
+                                @if (accountErrors.last) {
+                                <span class="err">
+                                    {{ accountErrors.last }}
+                                </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-x-4">
+
+                            <div class="f">
+
+                                <label for="a-email">
+                                    Sign-in email
+                                </label>
+
+                                <input matInput id="a-email" name="email" type="email" [(ngModel)]="accountForm.email"
+                                    autocomplete="email" [attr.aria-invalid]="
+                                        accountErrors.email ? 'true' : null
+                                    " />
+
+                                @if (accountErrors.email) {
+                                <span class="err">
+                                    {{ accountErrors.email }}
+                                </span>
+                                } @else {
+                                <span class="hint">
+                                    Used to sign in and for filing notifications.
+                                    Changing it sends a confirmation link.
+                                </span>
+                                }
+
+                            </div>
+
+                            <div class="f">
+
+                                <label for="a-phone">
+                                    Phone (US)
+                                </label>
+
+                                <input matInput id="a-phone" name="phone" type="tel" inputmode="numeric"
+                                    [(ngModel)]="accountForm.phone" (input)="onPhoneInput()"
+                                    placeholder="(240) 555-0100" autocomplete="tel-national" [attr.aria-invalid]="
+                                        accountErrors.phone ? 'true' : null
+                                    " />
+
+                                @if (accountErrors.phone) {
+                                <span class="err">
+                                    {{ accountErrors.phone }}
+                                </span>
+                                } @else {
+                                <span class="hint">
+                                    For account security codes.
+                                </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                    <div
+                        class="savebar flex items-center justify-end gap-[var(--sp-4)] py-[var(--sp-5)] px-[var(--sp-8)] border-t border-[color:var(--line-2)] bg-[var(--soft)] max-[767px]:flex-wrap max-[767px]:py-[11px] max-[767px]:px-[15px]">
+
+                        <span
+                            class="msg flex-1 !text-[color:var(--ink-3)] text-xs leading-[1.4] max-[767px]:basis-full max-[767px]:order-none">
+                            @if (accountDirty) {
+                            Unsaved changes
+                            }
+                        </span>
+
+                        <button mat-button type="button" class="btn max-[767px]:order-1" [disabled]="!accountDirty"
+                            (click)="cancelAccountChanges()">
+                            Cancel
+                        </button>
+
+                        <button mat-button type="button" class="btn primary max-[767px]:order-1"
+                            [disabled]="!accountDirty" (click)="saveAccount()">
+                            Save changes
+                        </button>
+
+                    </div>
+
+                </section>
+
+                <!-- Security -->
+                <section class="card">
+
+                    <div class="card-h">
+                        <h2>Sign-in and security</h2>
+                    </div>
+
+                    <div
+                        class="setting flex items-center justify-between gap-[var(--sp-9)] py-[var(--sp-7)] px-[var(--sp-8)] max-[767px]:items-start max-[767px]:p-[15px] [&>div]:min-w-0 [&>div]:flex-1 [&_b]:block [&_b]:mb-1 [&_b]:text-[color:var(--ink)] [&_b]:text-[13px] [&_b]:font-bold">
+
+                        <div>
+                            <b>Password</b>
+
+                            <span class="small muted !text-[color:var(--ink-3)] max-w-[900px]">
+                                Last changed Oct 2, 2025
+                            </span>
+                        </div>
+
+                        <button mat-button type="button" class="btn sm max-[767px]:order-1" (click)="changePassword()">
+                            Change password
+                        </button>
+
+                    </div>
+
+                    <div
+                        class="setting border-t border-[var(--line-2)] flex items-center justify-between gap-[var(--sp-9)] py-[var(--sp-7)] px-[var(--sp-8)] max-[767px]:items-start max-[767px]:p-[15px] [&>div]:min-w-0 [&>div]:flex-1 [&_b]:block [&_b]:mb-1 [&_b]:text-[color:var(--ink)] [&_b]:text-[13px] [&_b]:font-bold">
+
+                        <div class="min-w-0">
+                            <b>Two-step verification</b>
+
+                            <span class="small muted !text-[color:var(--ink-3)] max-w-[900px]">
+                                A code by text message when you sign in from a new
+                                device. Recommended: this account holds SSNs and EINs.
+                            </span>
+                        </div>
+
+                        <label class="switch max-[767px]:mt-0.5">
+
+                            <input type="checkbox" [(ngModel)]="twoStepVerification"
+                                aria-label="Two-step verification" />
+
+                            <span></span>
+
+                        </label>
+
+                    </div>
+
+                </section>
+
+            </div>
+            }
+
+            <!-- USERS -->
+            @if (section === 'users') {
+
+            <div class="stack flex flex-col gap-4">
+
+                <section class="card">
+
+                    <div
+                        class="setting flex items-center justify-between gap-[var(--sp-9)] py-[var(--sp-7)] px-[var(--sp-8)] max-[767px]:items-start max-[767px]:p-[15px] [&>div]:min-w-0 [&>div]:flex-1 [&_b]:block [&_b]:mb-1 [&_b]:text-[color:var(--ink)] [&_b]:text-[13px] [&_b]:font-bold">
+
+                        <div class="min-w-0">
+
+                            <b>
+                                Limit users to assigned filers
+                            </b>
+
+                            <span class="small muted !text-[color:var(--ink-3)] max-w-[900px]">
+                                When on, each user only sees the filers you assign
+                                to them. Accountants always see every filer.
+                            </span>
+
+                        </div>
+
+                        <label class="switch max-[767px]:mt-0.5">
+
+                            <input type="checkbox" [checked]="assignOn" (change)="toggleFilerAssignment()"
+                                aria-label="Limit users to assigned filers" />
+
+                            <span></span>
+
+                        </label>
+
+                    </div>
+
+                </section>
+
+                <section class="card">
+
+                    <div class="card-h">
+
+                        <h2>Users</h2>
+
+                        <button mat-button type="button" class="btn sm primary max-[767px]:order-1"
+                            (click)="inviteUser()">
+                            <!-- <img src="/assets/icons/plus-ink.svg" alt="plus" class="plus-icon" width="16" height="16" /> -->
+                            &plus;
+                            Invite user
+                        </button>
+
+                    </div>
+
+                    <div class="tbl-wrap">
+
+                        <table class="tbl">
+
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Filer access</th>
+                                    <th>Status</th>
+                                    <th>Last sign-in</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                @for (user of users; track user.id) {
+
+                                <tr>
+
+                                    <td>
+
+                                        <b>
+                                            {{ user.first }}
+                                            {{ user.last }}
+                                        </b>
+
+                                        @if (user.you) {
+                                        <span class="small muted !text-[color:var(--ink-3)] max-w-[900px]">
+                                            (you)
+                                        </span>
+                                        }
+
+                                        <div class="small muted !text-[color:var(--ink-3)] max-w-[900px]">
+                                            {{ user.email }}
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+                                        {{ roleName(user.role) }}
+                                    </td>
+
+                                    <td>
+
+                                        @if (
+                                        !assignOn ||
+                                        user.role === 'accountant' ||
+                                        user.filers === 'all'
+                                        ) {
+
+                                        <span class="small !text-[color:var(--ink-3)] max-w-[900px]">
+                                            All filers
+                                        </span>
+
+                                        } @else {
+
+                                        <button mat-button type="button"
+                                            class="btn link small !text-[color:var(--ink-3)] max-w-[900px] max-[767px]:order-1"
+                                            (click)="editUser(user)">
+                                            {{ user.filers.length }}
+                                            filer{{ user.filers.length > 1 ? 's' : '' }}
+                                        </button>
+
+                                        <div
+                                            class="small muted filer-preview !text-[color:var(--ink-3)] max-w-[260px] mt-[3px] overflow-hidden text-ellipsis whitespace-nowrap">
+                                            {{ user.filers.join(', ') }}
+                                        </div>
+
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <mat-chip class="pill max-[767px]:ml-[85px] max-[767px]:-mt-2"
+                                            [class.p-ok]="user.status === 'Active'"
+                                            [class.p-warn]="user.status === 'Invited'">
+                                            {{ user.status }}
+                                        </mat-chip>
+
+                                    </td>
+
+                                    <td class="small muted !text-[color:var(--ink-3)] max-w-[900px]">
+                                        {{ user.last_in }}
+                                    </td>
+
+                                    <td class="actions">
+
+                                        @if (!user.you) {
+
+                                        @if (user.status === 'Invited') {
+                                        <button mat-button type="button" class="btn sm ghost max-[767px]:order-1"
+                                            (click)="resendInvite(user)">
+                                            Resend invite
+                                        </button>
+                                        }
+
+                                        <button mat-button type="button" class="btn sm ghost max-[767px]:order-1"
+                                            (click)="editUser(user)">
+                                            Edit
+                                        </button>
+
+                                        <button mat-button type="button"
+                                            class="btn sm ghost danger-ghost max-[767px]:order-1"
+                                            (click)="removeUser(user)">
+                                            Remove
+                                        </button>
+
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+            </div>
+            }
+
+            <!-- ROLES -->
+            @if (section === 'roles') {
+
+            <section class="card">
+
+                <div class="card-h">
+
+                    <h2>Roles and permissions</h2>
+
+                    <button mat-button type="button" class="btn sm max-[767px]:order-1" (click)="addRole()">
+                        Add role
+                    </button>
+
+                </div>
+
+                <div class="tbl-wrap">
+
+                    <table
+                        class="tbl perm min-w-[760px] [&_input[type=checkbox]]:w-4 [&_input[type=checkbox]]:h-4 [&_input[type=checkbox]]:m-0 [&_input[type=checkbox]]:accent-[color:var(--navy-2)] [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]:disabled]:cursor-not-allowed [&_input[type=checkbox]:disabled]:opacity-[0.65]">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Permission
+                                </th>
+
+                                @for (role of roles; track role.k) {
+
+                                <th class="c w-[150px] text-center">
+
+                                    <div
+                                        class="rolecard flex flex-col gap-0.5 items-center [&_span:first-child]:text-[color:var(--ink-2)] [&_span:first-child]:text-[13px] [&_span:first-child]:font-bold">
+
+                                        <span>
+                                            {{ role.name }}
+                                        </span>
+
+                                        <span class="small muted font-normal !text-[color:var(--ink-3)] max-w-[900px]">
+                                            {{ getRoleUserCount(role.k) }}
+                                            user{{ getRoleUserCount(role.k) !== 1 ? 's' : '' }}
+                                        </span>
+
+                                    </div>
+
+                                </th>
+
+                                }
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @for (group of permissionGroups; track group.name) {
+
+                            <tr class="grp">
+
+                                <td [attr.colspan]="roles.length + 1">
+                                    {{ group.name }}
+                                </td>
+
+                            </tr>
+
+                            @for (
+                            permission of group.permissions;
+                            track permission.key
+                            ) {
+
+                            <tr>
+
+                                <td>
+                                    {{ permission.label }}
+                                </td>
+
+                                @for (role of roles; track role.k) {
+
+                                <td class="c w-[150px] text-center">
+
+                                    <input type="checkbox" [checked]="
+                                                        hasPermission(
+                                                            role.k,
+                                                            permission.key
+                                                        )
+                                                    " [disabled]="role.locked" [attr.aria-label]="
+                                                        permission.label +
+                                                        ' for ' +
+                                                        role.name
+                                                    " (change)="
+                                                        togglePermission(
+                                                            role,
+                                                            permission.key
+                                                        )
+                                                    " />
+
+                                </td>
+
+                                }
+
+                            </tr>
+
+                            }
+
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div
+                    class="savebar flex items-center justify-end gap-[var(--sp-4)] py-[var(--sp-5)] px-[var(--sp-8)] border-t border-[color:var(--line-2)] bg-[var(--soft)] max-[767px]:flex-wrap max-[767px]:py-[11px] max-[767px]:px-[15px]">
+
+                    <span
+                        class="msg flex-1 !text-[color:var(--ink-3)] text-xs leading-[1.4] max-[767px]:basis-full max-[767px]:order-none">
+
+                        @if (rolesChanged) {
+                        Unsaved changes
+                        } @else {
+                        The Accountant role always has every permission.
+                        }
+
+                    </span>
+
+                    <button mat-button type="button" class="btn max-[767px]:order-1" [disabled]="!rolesChanged"
+                        (click)="discardRoles()">
+                        Discard
+                    </button>
+
+                    <button mat-button type="button" class="btn primary max-[767px]:order-1" [disabled]="!rolesChanged"
+                        (click)="saveRoles()">
+                        Save roles
+                    </button>
+
+                </div>
+
+            </section>
+            }
+
+        </mat-tab-nav-panel>
+    </main>
+
+    <!-- SIDE PANEL -->
+    @if (panelVisible) {
+
+    <div class="scrim show" role="presentation" (click)="closePanel()"></div>
+
+    <aside class="panel show" aria-hidden="false" aria-labelledby="ptitle">
+
+        <header>
+
+            <h2 id="ptitle">
+                {{ panelTitle }}
+            </h2>
+
+            <button mat-button type="button" class="btn ghost sm max-[767px]:order-1" aria-label="Close"
+                (click)="closePanel()">
+                ✕
+            </button>
+
+        </header>
+
+        <div class="pb">
+
+            @if (!editingUser) {
+
+            <div class="grid grid-cols-1 gap-0 sm:grid-cols-2 sm:gap-x-4">
+
+                <div class="f">
+
+                    <label for="u-first">
+                        First name
+                    </label>
+
+                    <input matInput id="u-first" name="userFirst" [(ngModel)]="userForm.first" />
+
+                </div>
+
+                <div class="f">
+
+                    <label for="u-last">
+                        Last name
+                    </label>
+
+                    <input matInput id="u-last" name="userLast" [(ngModel)]="userForm.last" />
+
+                </div>
+
+            </div>
+
+            <div class="f">
+
+                <label for="u-email">
+                    Email
+                </label>
+
+                <input matInput id="u-email" name="userEmail" type="email" [(ngModel)]="userForm.email"
+                    [attr.aria-invalid]="
+                                userErrors.email ? 'true' : null
+                            " />
+
+                @if (userErrors.email) {
+
+                <span class="err">
+                    {{ userErrors.email }}
+                </span>
+
+                } @else {
+
+                <span class="hint">
+                    They get an email to set a password.
+                </span>
+
+                }
+
+            </div>
+
+            }
+
+            <fieldset class="m-0 mb-5 border-0 p-0">
+
+                <legend>
+                    Role
+                </legend>
+
+                <div class="radios stacked flex-col [&_label]:items-start [&_label_span]:flex [&_label_span]:flex-col">
+
+                    @for (role of roles; track role.k) {
+
+                    <label>
+
+                        <input type="radio" name="role" [value]="role.k" [checked]="userForm.role === role.k"
+                            (change)="selectUserRole(role.k)" />
+
+                        <span>
+
+                            <b>
+                                {{ role.name }}
+                            </b>
+
+                            <span class="small muted !text-[color:var(--ink-3)] max-w-[900px]">
+                                {{ role.desc }}
+                            </span>
+
+                        </span>
+
+                    </label>
+
+                    }
+
+                </div>
+
+            </fieldset>
+
+            <fieldset class="m-0 border-0 p-0">
+
+                <legend>
+                    Filer access
+                </legend>
+
+                @if (!assignOn) {
+
+                <div class="callout">
+                    Filer assignment is off, so this user sees all filers.
+                </div>
+
+                } @else if (userForm.role === 'accountant') {
+
+                <div class="callout">
+                    Accountants always see all filers.
+                </div>
+
+                } @else {
+
+                <div class="radios mb-2.5">
+
+                    <label>
+
+                        <input type="radio" name="fa" value="all" [checked]="selectedFilerMode === 'all'"
+                            (change)="selectFilerMode('all')" />
+
+                        All filers
+
+                    </label>
+
+                    <label>
+
+                        <input type="radio" name="fa" value="some" [checked]="selectedFilerMode === 'some'"
+                            (change)="selectFilerMode('some')" />
+
+                        Only selected filers
+
+                    </label>
+
+                </div>
+
+                @if (selectedFilerMode === 'some') {
+
+                <div
+                    class="filerlist max-h-[220px] overflow-auto border border-[color:var(--line)] rounded-[var(--r)] py-[var(--sp-2)] px-[var(--sp-4)] [&_label]:flex [&_label]:items-center [&_label]:gap-[var(--sp-3)] [&_label]:py-[5px] [&_label]:px-0 [&_label]:text-[13.5px]">
+
+                    @for (filer of filers; track filer) {
+
+                    <label>
+
+                        <input type="checkbox" class="cbx" [checked]="isFilerSelected(filer)"
+                            (change)="toggleFiler(filer)" />
+
+                        {{ filer }}
+
+                    </label>
+
+                    }
+
+                </div>
+
+                @if (userErrors.filers) {
+
+                <div class="f">
+                    <span class="err">
+                        {{ userErrors.filers }}
+                    </span>
+                </div>
+
+                } @else {
+
+                <div class="small muted mt-1.5 !text-[color:var(--ink-3)] max-w-[900px]">
+                    {{ selectedFilerCount }} selected
+                </div>
+
+                }
+
+                }
+
+                }
+
+            </fieldset>
+
+        </div>
+
+        <footer>
+
+            <button mat-button type="button" class="btn max-[767px]:order-1" (click)="closePanel()">
+                Cancel
+            </button>
+
+            <button mat-button type="button" class="btn primary max-[767px]:order-1" (click)="saveUser()">
+                {{ editingUser ? 'Save changes' : 'Send invite' }}
+            </button>
+
+        </footer>
+
+    </aside>
+    }
+
+    @if (toastVisible) {
+
+    <div class="toast show" role="status" aria-live="polite">
+        {{ toastMessage }}
+    </div>
+
+    }
+
+</div>

@@ -1,0 +1,302 @@
+<section class="nec-amounts">
+
+    <div class="sec-h">
+
+        <div class="nec-heading min-w-0">
+            <h2>Enter 1099-NEC amounts</h2>
+
+            <p class="muted small mt-0.5">
+                One row per recipient. Tab moves across the boxes.
+                Open a row for Box 2, Box 3, account number and the full form layout.
+            </p>
+        </div>
+
+        <div class="head-actions shrink-0 max-[1100px]:w-full">
+
+            <button
+                mat-stroked-button
+                type="button"
+                class="btn small-btn"
+                (click)="usePayerStateForAll()"
+            >
+                Use {{ payerState }} and payer state no. for all rows
+            </button>
+
+            <button
+                mat-stroked-button
+                type="button"
+                class="btn small-btn ghost"
+                (click)="preview.emit()"
+            >
+                Preview copies
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="card grid-wrap">
+
+        <table class="entry">
+
+            <thead>
+                <tr>
+                    <th class="w-9"></th>
+                    <th class="w-[230px]">Recipient</th>
+                    <th class="num w-40">
+                        <span>Nonemployee compensation</span>
+                        <small class="box">Box 1</small>
+                    </th>
+                    <th class="num w-[150px]">
+                        <span>Federal tax withheld</span>
+                        <small class="box">Box 4</small>
+                    </th>
+                    <th class="num w-[140px]">
+                        <span>State tax withheld</span>
+                        <small class="box">Box 5</small>
+                    </th>
+                    <th class="w-[240px]">
+                        <span>State / payer's state no.</span>
+                        <small class="box">Box 6</small>
+                    </th>
+                    <th class="num w-[140px]">
+                        <span>State income</span>
+                        <small class="box">Box 7</small>
+                    </th>
+                    <th class="w-[110px]">Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @for (row of rows; track row.id) {
+
+                    <tr>
+
+                        <td>
+                            <button
+                                mat-stroked-button
+                                type="button"
+                                class="btn ghost small-btn expand-button"
+                                [attr.aria-expanded]="row.expanded"
+                                [attr.aria-label]="'More boxes for ' + row.name"
+                                (click)="toggleRow(row)"
+                            >
+                                @if (row.expanded) {
+                                <img src="/assets/icons/chevron-down-dark-22.svg" alt="chevron-down" class="chevron-down-icon" width="16" height="16" />
+                                } @else {
+                                <img src="/assets/icons/chevron-right-dark-22.svg" alt="chevron-right" class="chevron-right-icon" width="16" height="16" />
+                                }
+                            </button>
+                        </td>
+
+                        <td>
+                            <strong>{{ row.name }}</strong>
+                            <div class="small muted">{{ row.tin }}</div>
+
+                            @if (row.recipientIssues.length) {
+                                <button
+                                    mat-button
+                                    type="button"
+                                    class="btn link small"
+                                    (click)="fixRecipient.emit(row.id)"
+                                >
+                                    Fix recipient details
+                                </button>
+                            }
+
+                            @if (errors(row).length) {
+                                <div class="rowmsg err">{{ errors(row).join('. ') }}</div>
+                            } @else if (warnings(row).length) {
+                                <div class="rowmsg warn">{{ warnings(row).join(' ') }}</div>
+                            }
+                        </td>
+
+                        <td>
+                            <input
+                                matInput
+                                class="money"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                [attr.aria-label]="boxLabel(row, 'box1')"
+                                [ngModel]="row.box1"
+                                (ngModelChange)="onAmountChange(row, 'box1', $event)"
+                            />
+                        </td>
+
+                        <td>
+                            <input
+                                matInput
+                                class="money"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                [attr.aria-label]="boxLabel(row, 'box4')"
+                                [ngModel]="row.box4"
+                                (ngModelChange)="onAmountChange(row, 'box4', $event)"
+                            />
+                        </td>
+
+                        <td>
+                            <input
+                                matInput
+                                class="money"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                [attr.aria-label]="boxLabel(row, 'box5')"
+                                [ngModel]="row.box5"
+                                (ngModelChange)="onAmountChange(row, 'box5', $event)"
+                            />
+                        </td>
+
+                        <td>
+                            <div class="state-input-group flex w-full gap-1.5">
+                                <mat-select
+                                    class="sel-st"
+                                    [attr.aria-label]="'Box 6 state for ' + row.name"
+                                    [ngModel]="row.state"
+                                    (ngModelChange)="onStateChange(row, $event)"
+                                >
+                                    <mat-option value=""></mat-option>
+
+                                    @for (code of states; track code) {
+                                        <mat-option [value]="code">{{ code }}</mat-option>
+                                    }
+                                </mat-select>
+
+                                <input
+                                    matInput
+                                    class="txt"
+                                    placeholder="Payer state no."
+                                    aria-label="Payer's state number"
+                                    [ngModel]="row.payerStateNumber"
+                                    (ngModelChange)="row.payerStateNumber = $event; emitChanges()"
+                                />
+                            </div>
+                        </td>
+
+                        <td>
+                            <input
+                                matInput
+                                class="money"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                [attr.aria-label]="boxLabel(row, 'box7')"
+                                [ngModel]="row.box7"
+                                (ngModelChange)="onAmountChange(row, 'box7', $event)"
+                            />
+                        </td>
+
+                        <td>
+                            <mat-chip class="pill" [ngClass]="statusClass(row)">{{ status(row) }}</mat-chip>
+                        </td>
+
+                    </tr>
+
+                    @if (row.expanded) {
+                        <tr class="more">
+                            <td></td>
+                            <td colspan="7">
+                                <div class="formcopy" aria-label="Form 1099-NEC layout">
+
+                                    <div class="fc">
+                                        <span class="cap">PAYER</span>
+                                        <b>{{ payerName }}</b>
+                                        <span class="small">{{ payerAddress }}</span>
+                                    </div>
+
+                                    <div class="fc">
+                                        <span class="cap">PAYER'S TIN</span>
+                                        <span>{{ payerTin }}</span>
+                                        <span class="cap mt-1.5">RECIPIENT'S TIN</span>
+                                        <span>{{ row.tin }}</span>
+                                    </div>
+
+                                    <div class="fc">
+                                        <span class="cap">Box 2</span>
+                                        <mat-checkbox
+                                            class="chk"
+                                            [ngModel]="row.box2"
+                                            (ngModelChange)="row.box2 = $event; emitChanges()"
+                                        >
+                                            Direct sales of $5,000 or more of consumer products for resale
+                                        </mat-checkbox>
+                                    </div>
+
+                                    <div class="fc">
+                                        <span class="cap">RECIPIENT</span>
+                                        <b>{{ row.name }}</b>
+                                        <span class="small">{{ row.address }}</span>
+                                    </div>
+
+                                    <div class="fc">
+                                        <label [attr.for]="'box3-' + row.id">
+                                            Box 3 · Excess golden parachute payments
+                                        </label>
+                                        <input
+                                            matInput
+                                            [id]="'box3-' + row.id"
+                                            class="money"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder="0.00"
+                                            [ngModel]="row.box3"
+                                            (ngModelChange)="onAmountChange(row, 'box3', $event)"
+                                        />
+                                    </div>
+
+                                    <div class="fc">
+                                        <label [attr.for]="'account-' + row.id">
+                                            Account number (optional)
+                                        </label>
+                                        <input
+                                            matInput
+                                            [id]="'account-' + row.id"
+                                            class="txt"
+                                            [ngModel]="row.accountNumber"
+                                            (ngModelChange)="row.accountNumber = $event; emitChanges()"
+                                        />
+                                        <mat-checkbox
+                                            class="chk"
+                                            [ngModel]="row.secondTin"
+                                            (ngModelChange)="row.secondTin = $event; emitChanges()"
+                                        >
+                                            2nd TIN not.
+                                        </mat-checkbox>
+                                    </div>
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+
+                }
+
+            </tbody>
+
+            <tfoot>
+                <tr class="totals">
+                    <td></td>
+                    <td>Total, {{ formCount }} form{{ formCount === 1 ? '' : 's' }}</td>
+                    <td class="num">${{ totalBox1 | number:'1.2-2' }}</td>
+                    <td class="num">${{ totalBox4 | number:'1.2-2' }}</td>
+                    <td class="num">${{ totalBox5 | number:'1.2-2' }}</td>
+                    <td></td>
+                    <td class="num">${{ totalBox7 | number:'1.2-2' }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+
+        </table>
+
+    </div>
+
+</section>

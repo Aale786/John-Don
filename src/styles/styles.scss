@@ -1,0 +1,3831 @@
+/* =========================================================
+   TAXSEER GLOBAL STYLESHEET
+
+   Single source of truth for every shared style in the app:
+   theme tokens, typography, page chrome, buttons, tables, cards,
+   chips, badges, forms, tabs, alerts and modals.
+
+   Component .scss files only keep rules that are specific to that
+   component (its own layout, animations and local overrides).
+   ========================================================= */
+
+:root {
+    /* =========================================================
+       TAXSEER GLOBAL VARIABLES & THEME TOKENS
+       Mirrors the prototype's :root exactly. Every shared rule
+       reads from these; no hardcoded sizes or colours.
+       ========================================================= */
+
+    /* Brand & Navy */
+    --navy: #1c3f6e;
+    --navy-2: #2a5391;
+    --navy-3: #264c80;
+    --navy-tint: #e6edf7;
+    --cart: #f2c230;
+    --cart-ink: #1c1a12;
+
+    /* Canvas & Surfaces */
+    --canvas: #edf0f3;
+    --paper: #ffffff;
+    --soft: #f7f9fb;
+    --hover: #f5f7fa;
+
+    /* Borders & Lines */
+    --line: #d5dce4;
+    --line-2: #e7ebf0;
+
+    /* Neutrals & Text */
+    --ink: #17212e;
+    --ink-2: #45505e;
+    --ink-3: #5f6a78;
+
+    /* Status Colors */
+    --green: #1b6b46;
+    --green-tint: #e0f1e8;
+    --amber: #8f4c00;
+    --amber-tint: #fcefd9;
+    --red: #b3261e;
+    --red-tint: #fbe7e5;
+    --blue: #2e6cb5;
+    --blue-tint: #e3eef9;
+    --support: #b85c0a;
+
+    /* Status aliases */
+    --st-pending: var(--amber);
+    --st-pending-bg: var(--amber-tint);
+    --st-completed: var(--blue);
+    --st-completed-bg: var(--blue-tint);
+    --st-cart: var(--ink-2);
+    --st-cart-bg: var(--line-2);
+    --st-submitted: var(--blue);
+    --st-submitted-bg: var(--blue-tint);
+    --st-accepted: var(--green);
+    --st-accepted-bg: var(--green-tint);
+    --st-rejected: var(--red);
+    --st-rejected-bg: var(--red-tint);
+
+    /* Typography */
+    --font: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --fs-display: 24px;
+    --fs-title: 22px;
+    --fs-h2: 16px;
+    --fs-h3: 15px;
+    --fs-body: 14px;
+    --fs-small: 13px;
+    --fs-caption: 12.5px;
+    --fs-micro: 12px;
+    --fs-key: 11px;
+    --fs-stat: 22px;
+    --lh: 1.45;
+    --lh-tight: 1.15;
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+
+    /* Spacing */
+    --sp-0: 2px;
+    --sp-1: 4px;
+    --sp-2: 6px;
+    --sp-3: 8px;
+    --sp-4: 10px;
+    --sp-5: 12px;
+    --sp-6: 14px;
+    --sp-7: 16px;
+    --sp-8: 18px;
+    --sp-9: 20px;
+    --sp-10: 24px;
+    --sp-12: 32px;
+    --sp-14: 40px;
+
+    /* Radius */
+    --r-xs: 4px;
+    --r: 6px;
+    --r-md: 8px;
+    --r-lg: 10px;
+    --r-xl: 12px;
+    --r-2xl: 14px;
+    --r-pill: 999px;
+
+    /* Elevation */
+    --sh-1: 0 1px 2px rgba(23, 33, 46, 0.08);
+    --sh-2: 0 6px 18px rgba(8, 22, 44, 0.18);
+    --sh-3: 0 12px 30px rgba(23, 33, 46, 0.18);
+    --sh-4: 0 24px 60px rgba(8, 22, 44, 0.35);
+    --sh-foot: 0 -4px 16px rgba(23, 33, 46, 0.06);
+
+    /* Sizing */
+    --h-topbar: 56px;
+    --h-control: 38px;
+    --h-control-sm: 32px;
+    --h-select: 36px;
+    --h-cta: 48px;
+    --w-content: 1320px;
+    --w-panel: 560px;
+    --w-dialog: 560px;
+    --w-dialog-sm: 460px;
+
+    /* Motion */
+    --dur-fast: 0.12s;
+    --dur: 0.18s;
+    --dur-slow: 0.22s;
+    --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    /* Layering */
+    --z-footer: 25;
+    --z-topbar: 30;
+    --z-popover: 40;
+    --z-scrim: 50;
+    --z-panel: 51;
+    --z-toast: 60;
+}
+
+/* =========================================================
+   typography
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL TYPOGRAPHY & BASE RESETS
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+::-webkit-scrollbar{
+    height: 5px;
+    width: 5px;
+}
+
+::-webkit-scrollbar-track{
+    background-color: rgb(204, 204, 204);
+}
+
+::-webkit-scrollbar-thumb{
+    background: #949494;
+}
+
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--navy-2);
+    outline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+p {
+    margin: 0;
+}
+
+h1 {
+    font-size: var(--fs-display);
+    letter-spacing: -0.01em;
+    font-weight: var(--fw-semibold);
+}
+
+h2 {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-semibold);
+}
+
+h3 {
+    font-size: var(--fs-h3);
+    color: var(--ink-3);
+}
+
+a {
+    color: var(--navy-2);
+}
+
+.taxseer-ink {
+    color: var(--ink);
+}
+
+.taxseer-muted,
+.muted {
+    color: var(--ink-3) !important;
+}
+
+small,
+.small {
+    font-size: var(--fs-caption);
+}
+
+kbd {
+    font-family: var(--font);
+    font-size: var(--fs-key);
+    font-weight: var(--fw-semibold);
+    padding: 1px var(--sp-2);
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: var(--r-xs);
+    background: var(--paper);
+    color: var(--ink-2);
+}
+
+
+/* =========================================================
+   page
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER SHARED PAGE CHROME
+   Rules used by every Taxseer screen. Page-specific overrides
+   stay in the owning component stylesheet.
+   ========================================================= */
+
+/* Page shell: background, text colour and base type for routed pages.
+   The reference sets body to 14px/1.45, but Fuse's base layer pins body to
+   --text-base (0.8125rem = 13px), so every Taxseer element that inherits
+   instead of taking an explicit --fs-* token rendered a step small. Stating
+   the base on the shell puts the whole subtree back on the reference scale. */
+.taxseer-layout,
+.taxseer-main > *:not(router-outlet) {
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: var(--fs-body);
+    line-height: var(--lh);
+    font-variant-numeric: tabular-nums;
+}
+
+.taxseer-main > *:not(router-outlet) {
+    display: block;
+    min-height: 100vh;
+    background: var(--canvas);
+}
+
+/* Tailwind type ramp on the reference scale.
+   The page templates were ported with text-2xs/xs/sm/base/lg as a caption /
+   small / body / heading ladder, but Fuse's @theme ladder sits a step lower
+   (11 / 12 / 13 / 16) than the mockups (12.5 / 13 / 14 / 16). Because the
+   utilities are compiled with `important`, the only way to bring them back is
+   to change the custom properties they read, not to fight them per element.
+   Custom properties resolve on the nearest ancestor that declares them, so
+   restate them on the layout shell: untouched outside Taxseer. */
+.taxseer-layout {
+    --text-2xs: var(--fs-micro);
+    --text-2xs--line-height: 17px;
+    --text-xs: var(--fs-caption);
+    --text-xs--line-height: 18px;
+    --text-sm: var(--fs-small);
+    --text-sm--line-height: 19px;
+    --text-base: var(--fs-body);
+    --text-base--line-height: 20px;
+    --text-md: var(--fs-body);
+    --text-md--line-height: 20px;
+    --text-lg: var(--fs-h2);
+    --text-lg--line-height: 22px;
+    --text-xl: 18px;
+    --text-xl--line-height: 24px;
+    --text-2xl: var(--fs-title);
+    --text-2xl--line-height: var(--lh-tight);
+    --text-3xl: var(--fs-display);
+    --text-3xl--line-height: var(--lh-tight);
+}
+
+.page {
+    // max-width: var(--w-content);
+    margin: 0 auto;
+    padding: var(--sp-10) var(--sp-10) 120px;
+}
+
+/* Title + description + primary action */
+.head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: var(--sp-8);
+
+    h1 {
+        margin: 0;
+        font-size: var(--fs-display);
+        font-weight: var(--fw-semibold);
+        letter-spacing: -0.01em;
+    }
+
+    p {
+        margin: 4px 0 0;
+        color: var(--ink-2);
+    }
+}
+
+/* Stat tiles */
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-5);
+    margin-bottom: var(--sp-6);
+}
+
+.tiles.activeTile{
+    border: 1px solid var(--line) !important;
+//     border: 1px solid red;
+}
+
+.tile {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--paper);
+    padding: var(--sp-5) var(--sp-7);
+    text-align: left;
+    font: inherit;
+    font-size: var(--fs-body);
+    line-height: var(--lh);
+    color: inherit;
+
+    .v {
+        display: block;
+        font-size: var(--fs-stat);
+        font-weight: var(--fw-semibold);
+        line-height: var(--lh);
+    }
+
+    &:hover {
+        border-color: #a9b6c6;
+        background: var(--hover);
+    }
+
+
+    &[aria-pressed='true'] {
+        border-color: var(--navy);
+        box-shadow: 0 0 0 1px var(--navy);
+    }
+
+    &.err .v {
+        color: var(--red);
+    }
+
+    &.warn .v {
+        color: var(--amber);
+    }
+}
+
+/* Card toolbar */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-5);
+    flex-wrap: wrap;
+    padding: var(--sp-5) var(--sp-7);
+    border-bottom: 1px solid var(--line-2);
+
+    .spacer {
+        flex: 1;
+    }
+}
+
+/* Inline labelled select */
+.yr {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
+.sel {
+    height: var(--h-select);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 0 var(--sp-2);
+    background: var(--paper);
+    color: inherit;
+    font: inherit;
+}
+
+/* Expandable table rows */
+tr.more td {
+    background: #fafbfc;
+    padding: var(--sp-1) var(--sp-5) var(--sp-7);
+
+    &:hover {
+        background: #fafbfc;
+    }
+}
+
+.mini {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--paper);
+
+    th {
+        background: var(--soft);
+        text-align: left;
+        font-size: 12px;
+        font-weight: var(--fw-semibold);
+        color: var(--ink-2);
+        padding: var(--sp-3) var(--sp-5);
+        border-bottom: 1px solid var(--line);
+    }
+
+    td {
+        padding: var(--sp-3) var(--sp-5);
+        border-bottom: 1px solid var(--line-2);
+        font-size: var(--fs-small);
+    }
+
+    tr:last-child td {
+        border-bottom: 0;
+    }
+
+    th.num,
+    td.num {
+        text-align: right;
+    }
+}
+
+/* Form 1099-NEC paper preview inside an expanded row */
+.formcopy {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 0;
+
+    margin-top: 6px;
+    padding: 0;
+
+    border: 1px solid #9ba7b5;
+    border-radius: 4px;
+
+    background: var(--paper);
+    font-size: 13px;
+}
+
+.fc {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+    padding: var(--sp-3) 10px;
+
+    border-right: 1px solid #c9d1db;
+    border-bottom: 1px solid #c9d1db;
+
+    .cap,
+    label {
+        font-size: 11.5px;
+        color: var(--ink-3);
+    }
+
+    label.chk {
+        font-size: 13px;
+        color: var(--ink);
+    }
+}
+
+.fc:nth-child(3n) {
+    border-right: 0;
+}
+
+.exp {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: var(--r);
+    background: transparent;
+    color: var(--ink-3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--line-2);
+    }
+
+    svg, img {
+        width: 16px;
+        height: 16px;
+        transition: transform var(--dur-fast) ease;
+    }
+
+    &[aria-expanded='true'] svg, &[aria-expanded='true'] img {
+        transform: rotate(90deg);
+    }
+}
+
+.flink {
+    font-weight: var(--fw-semibold);
+    color: var(--ink);
+    text-decoration: none;
+
+    &:hover {
+        color: var(--navy-2);
+        text-decoration: underline;
+    }
+}
+
+/* Inline row hints */
+.issue {
+    color: var(--red);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+}
+
+.note {
+    color: var(--amber);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+}
+
+.prog {
+    height: 6px;
+    width: 140px;
+    border-radius: 3px;
+    background: var(--line-2);
+    overflow: hidden;
+    margin-top: 6px;
+
+    span {
+        display: block;
+        height: 100%;
+        background: var(--navy-2);
+    }
+}
+
+/* Section heading with right-aligned actions */
+.sec-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--sp-5);
+    flex-wrap: wrap;
+    margin-bottom: var(--sp-5);
+}
+
+.head-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+}
+
+/* Two-column content + sidebar */
+.forms-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--sp-9);
+    align-items: start;
+}
+
+/* Key / value summary rows */
+.kv {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: 5px 0;
+
+    span:first-child {
+        color: var(--ink-3);
+    }
+
+    b {
+        text-align: right;
+    }
+}
+
+/* Review stat strip */
+.review-top {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-5);
+    margin-bottom: var(--sp-7);
+}
+
+.stat {
+    padding: var(--sp-6) var(--sp-7);
+
+    .v {
+        margin-top: 4px;
+        font-size: var(--fs-stat);
+        font-weight: var(--fw-semibold);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .small-v {
+        padding-top: 6px;
+        font-size: 14px;
+    }
+}
+
+/* Named links in tables */
+a.fname {
+    font-size: 14px;
+    font-weight: var(--fw-semibold);
+    color: var(--navy-2);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.danger-text {
+    color: var(--red) !important;
+}
+
+/* Confirmation screen */
+.done-wrap {
+    max-width: 640px;
+    margin: 40px auto;
+    text-align: center;
+
+    .ic {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        margin-bottom: var(--sp-7);
+        border-radius: 50%;
+        background: var(--green-tint);
+        color: var(--green);
+
+        svg, img {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    h1 {
+        margin: 0;
+        font-size: var(--fs-display);
+        font-weight: var(--fw-semibold);
+        letter-spacing: -0.01em;
+    }
+
+    p {
+        margin: 8px 0 0;
+    }
+}
+
+.done-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+    margin-top: var(--sp-9);
+
+    .btn {
+        height: 48px;
+        justify-content: space-between;
+        padding: 0 18px;
+    }
+}
+
+/* Card footer note */.foot-note {
+    padding: var(--sp-4) var(--sp-7);
+    font-size: var(--fs-caption);
+    color: var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-5);
+    flex-wrap: wrap;
+}
+
+/* Screen-reader-only label */
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* =========================================================
+   RESPONSIVE
+   Pages that need a different collapse point override these
+   in their own stylesheet.
+   ========================================================= */
+
+@media (max-width: 1000px) {
+    .tiles {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .template-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .search {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .review-top {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .forms-wrap {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .page {
+        padding: var(--sp-8) var(--sp-6) 100px;
+    }
+
+    .head {
+        align-items: flex-start;
+    }
+
+    .toolbar {
+        align-items: stretch;
+
+        .search {
+            flex: 1 0 100%;
+            width: 100%;
+        }
+    }
+}
+
+@media (max-width: 640px) {
+    .search {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .tiles {
+        grid-template-columns: 1fr;
+    }
+
+    .foot-note {
+        flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+
+/* =========================================================
+   buttons
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL BUTTONS
+   ========================================================= */
+
+/* Standard .btn family used across features */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3);
+    height: var(--h-control);
+    padding: 0 var(--sp-6);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--fs-body);
+    line-height: var(--lh);
+    font-weight: var(--fw-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color var(--dur-fast) ease,
+        border-color var(--dur-fast) ease,
+        box-shadow var(--dur-fast) ease,
+        color var(--dur-fast) ease;
+
+    &:hover:not(:disabled) {
+        background: var(--hover);
+        border-color: #b9c3ce;
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(42, 83, 145, 0.15);
+    }
+
+    &:disabled,
+    &[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Primary variant */
+    &.primary {
+        background: var(--navy);
+        border-color: var(--navy);
+        color: #ffffff !important;
+
+        &:hover:not(:disabled) {
+            background: var(--navy-2);
+            border-color: var(--navy-2);
+        }
+
+        &:disabled,
+        &[disabled] {
+            background: #9aa8ba;
+            border-color: #9aa8ba;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+
+    /* Small variant */
+    &.sm,
+    &.small-btn {
+        height: 32px;
+        min-height: 32px;
+        padding: 0 10px;
+        font-size: 12.5px;
+    }
+
+    /* Ghost variant */
+    &.ghost {
+        border-color: transparent;
+        background: transparent;
+
+        &:hover:not(:disabled) {
+            background: var(--hover);
+        }
+    }
+
+    /* Danger Ghost variant */
+    &.danger-ghost {
+        border-color: transparent;
+        background: transparent;
+        color: var(--red) !important;
+
+        &:hover:not(:disabled) {
+            background: #fff2f2;
+            border-color: #e8baba;
+        }
+    }
+
+    /* Inline Link variant */
+    &.link {
+        min-height: auto;
+        height: auto;
+        padding: 0 4px;
+        border: 0;
+        background: transparent;
+        color: var(--navy-2) !important;
+
+        &:hover:not(:disabled) {
+            background: transparent;
+            text-decoration: underline;
+        }
+    }
+
+    svg, img {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.small-btn {
+    height: 32px;
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: var(--fs-small);
+}
+
+.text-button {
+    border: 0;
+    background: none;
+    color: var(--navy-2);
+    padding: 0 4px;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+/* TaxSeer prefixed button styles */
+.taxseer-btn {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 0.4rem;
+    background: #fff;
+    padding: 0 0.8rem;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        border-color 140ms ease,
+        background-color 140ms ease;
+
+    &:hover:not(:disabled) {
+        border-color: var(--navy-2);
+        background: var(--soft);
+    }
+
+    &:disabled,
+    &[disabled] {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &--primary {
+        border-color: var(--navy-2);
+        background: var(--navy-2);
+        color: #fff;
+
+        &:hover:not(:disabled) {
+            border-color: var(--navy-3);
+            background: var(--navy-3);
+        }
+    }
+
+    &--small {
+        min-height: 30px;
+        padding-inline: 0.65rem;
+        font-size: 0.72rem;
+    }
+}
+
+.taxseer-icon-btn {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+
+    span {
+        display: block;
+        font-size: 1.3rem;
+        line-height: 1;
+        transition: transform 140ms ease;
+    }
+}
+
+.taxseer-link-button {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--navy-2);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+
+/* =========================================================
+   tables
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL TABLES
+   ========================================================= */
+
+/* Responsive table wrappers */
+.table-scroll,
+.tbl-wrap,
+.grid-wrap,
+.taxseer-table-wrap,
+.taxseer-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Standard table & .tbl used across features */
+table,
+.tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+
+    th,
+    td {
+        border-bottom: 1px solid var(--line-2);
+        padding: var(--sp-5) var(--sp-5);
+        text-align: left;
+        vertical-align: middle;
+        // font-size: var(--fs-h3);
+        font-size: var(--fs-body);
+        // font-size: 14.5px;
+        line-height: var(--lh);
+    }
+
+    td {
+        padding: 11px var(--sp-5);
+    }
+
+    th {
+        background: var(--soft);
+        color: var(--ink-2);
+        font-size: var(--fs-caption);
+        font-weight: var(--fw-semibold);
+        border-bottom: 1px solid var(--line);
+        padding: 9px var(--sp-5);
+        white-space: nowrap;
+    }
+
+    tbody tr:hover td,
+    tbody tr:hover {
+        background: var(--hover);
+    }
+
+    tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    th.num,
+    td.num,
+    .numeric {
+        text-align: right;
+    }
+}
+
+/* TaxSeer prefixed table system */
+.taxseer-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+
+    th,
+    td {
+        border-bottom: 1px solid var(--line);
+        padding: 0.8rem 0.85rem;
+        text-align: left;
+        vertical-align: middle;
+        font-size: 0.76rem;
+    }
+
+    th {
+        background: var(--soft);
+        color: #526174;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+    }
+
+    tbody tr:hover {
+        background: #fbfcfd;
+    }
+
+    &__icon {
+        width: 42px;
+    }
+
+    &__actions,
+    &__actions-column {
+        text-align: right !important;
+        white-space: nowrap;
+    }
+
+    &__sub {
+        margin-top: 0.2rem;
+        color: var(--ink-3);
+        font-size: 0.68rem;
+    }
+
+    &__detail-row {
+        background: #fafbfd;
+
+        &:hover {
+            background: #fafbfd !important;
+        }
+    }
+}
+
+/* Subline description under primary cell text */
+.subline {
+    display: block;
+    color: var(--ink-3);
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+/* Action column helpers */
+.table-actions,
+.actions {
+    white-space: nowrap;
+    text-align: right;
+
+    .btn + .btn {
+        margin-left: 4px;
+    }
+}
+
+/* Row states */
+table {
+    tr.click {
+        cursor: pointer;
+
+        &:hover td {
+            background: var(--hover);
+        }
+    }
+
+    tr.sel td {
+        background: #f0f4fa;
+    }
+
+    tr.totals td {
+        background: var(--soft);
+        font-weight: var(--fw-semibold);
+    }
+
+    tr.skipped td {
+        opacity: 0.5;
+    }
+
+    tr.group-label td {
+        background: var(--soft);
+        padding: 7px 12px;
+        color: var(--ink-3);
+        font-size: var(--fs-caption);
+        font-weight: var(--fw-semibold);
+    }
+}
+
+/* Column helpers */
+.col-check {
+    width: 44px;
+}
+
+.radio-row {
+    td:first-child {
+        width: 44px;
+    }
+
+    &.sel td {
+        background: #f0f4fa;
+    }
+
+    input[type='radio'] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--navy);
+    }
+}
+
+/* Tables that need to stay wide and scroll horizontally */
+.wide {
+    min-width: 900px;
+
+    td {
+        padding: 11px 12px;
+    }
+
+    td .small,
+    td .issue,
+    td .note {
+        margin-top: 2px;
+    }
+}
+
+/* Empty table state */
+.empty,
+.taxseer-empty {
+    padding: var(--sp-14) var(--sp-7);
+    text-align: center;
+    color: var(--ink-2);
+
+    strong,
+    span {
+        display: block;
+    }
+
+    strong {
+        color: #34465b;
+    }
+
+    span {
+        margin-top: 0.3rem;
+    }
+}
+
+
+/* =========================================================
+   chips
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL CHIPS, PILLS & STATUS CLIPS
+   ========================================================= */
+
+/* Standard .pill system used across features */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: 2px 9px;
+    border-radius: var(--r-pill);
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh);
+    white-space: nowrap;
+    background: var(--line-2);
+    color: var(--ink-2);
+
+    /* Warning variants */
+    &.warning-pill,
+    &.p-warn,
+    &.warn {
+        background: var(--amber-tint);
+        color: var(--amber) !important;
+    }
+
+    /* Success variants */
+    &.success-pill,
+    &.p-ok,
+    &.ok {
+        background: var(--green-tint);
+        color: var(--green) !important;
+    }
+
+    /* Neutral variants */
+    &.neutral-pill,
+    &.p-neutral {
+        background: var(--line-2);
+        color: var(--ink-2) !important;
+    }
+
+    /* Error / Danger variants */
+    &.p-err,
+    &.err,
+    &.danger {
+        background: var(--red-tint);
+        color: var(--red) !important;
+    }
+
+    /* Info variants */
+    &.p-info,
+    &.info {
+        background: var(--blue-tint);
+        color: var(--blue) !important;
+    }
+}
+
+/* Standalone modifier classes */
+.warning-pill,
+.p-warn {
+    background: var(--amber-tint);
+    color: var(--amber) !important;
+}
+
+.success-pill,
+.p-ok {
+    background: var(--green-tint);
+    color: var(--green) !important;
+}
+
+.neutral-pill,
+.p-neutral {
+    background: var(--line-2);
+    color: var(--ink-2) !important;
+}
+
+.p-err {
+    background: var(--red-tint);
+    color: var(--red) !important;
+}
+
+.p-info {
+    background: var(--blue-tint);
+    color: var(--blue) !important;
+}
+
+/* TaxSeer prefixed pills */
+.taxseer-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 23px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    padding: 0 0.55rem;
+    color: #526174;
+    font-size: 0.68rem;
+    font-weight: 600;
+
+    &--success {
+        border-color: rgb(46 139 87 / 18%);
+        background: rgb(46 139 87 / 8%);
+        color: var(--green);
+    }
+
+    &--warning {
+        border-color: rgb(166 106 0 / 18%);
+        background: rgb(166 106 0 / 8%);
+        color: var(--amber);
+    }
+
+    &--error {
+        border-color: rgb(180 58 58 / 18%);
+        background: rgb(180 58 58 / 8%);
+        color: var(--red);
+    }
+
+    &--info {
+        border-color: rgb(43 106 163 / 18%);
+        background: rgb(43 106 163 / 8%);
+        color: var(--blue);
+    }
+}
+
+/* Status chips / clips */
+.status-fix,
+.status-ready {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 21px;
+    padding: 2px 10px;
+    border: 0;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.status-fix {
+    background: #fde8e6;
+    color: #c63228;
+    cursor: pointer;
+
+    &:hover {
+        background: #fbd8d4;
+    }
+}
+
+.status-ready {
+    background: #e5f4e9;
+    color: #247444;
+}
+
+.mode-pill {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--navy-tint);
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+
+/* =========================================================
+   badges
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL BADGES & COUNTS
+   ========================================================= */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 20px;
+    border-radius: 10px;
+    padding: 0 6px;
+    background: var(--cart-ink);
+    color: var(--cart);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    margin-left: 5px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--line-2);
+    color: var(--ink-2);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #cad6e6;
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   cards
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL CARDS
+   ========================================================= */
+
+.card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    min-width: 0;
+    overflow: hidden;
+    // padding: 20px;
+
+    &.pad {
+        padding: 14px 18px;
+    }
+}
+
+.card-heading,
+.card-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-2);
+
+    h2 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
+}
+
+.cardbody {
+    padding: 18px 19px 16px;
+}
+
+.taxseer-card {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+    box-shadow: 0 2px 10px rgb(28 45 67 / 3%);
+}
+
+
+/* =========================================================
+   forms
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL FORMS & CONTROLS
+   ========================================================= */
+
+/* Search inputs */
+.search {
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 0 12px;
+    background: var(--paper);
+    min-width: 280px;
+    font: inherit;
+    color: inherit;
+    outline: none;
+
+    &:focus {
+        border-color: var(--navy-2);
+        box-shadow: 0 0 0 2px rgba(42, 83, 145, 0.12);
+    }
+}
+
+.taxseer-search {
+    position: relative;
+    display: block;
+    width: min(100%, 280px);
+
+    svg, img {
+        position: absolute;
+        top: 50%;
+        left: 0.7rem;
+        width: 15px;
+        height: 15px;
+        transform: translateY(-50%);
+        fill: none;
+        stroke: var(--ink-3);
+        stroke-width: 1.8;
+        pointer-events: none;
+    }
+
+    input {
+        width: 100%;
+        height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 0.4rem;
+        outline: none;
+        padding: 0 0.75rem 0 2.2rem;
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.78rem;
+
+        &:focus {
+            border-color: var(--navy-2);
+            box-shadow: 0 0 0 2px rgb(31 87 140 / 10%);
+        }
+    }
+}
+
+.taxseer-select {
+    min-width: 180px;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 0.4rem;
+    background: #fff;
+    padding-inline: 0.7rem;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.78rem;
+
+    &--year {
+        min-width: 110px;
+    }
+}
+
+/* Responsive field rows */
+.row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-5);
+}
+
+.row3 {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--sp-5);
+}
+
+/* Radio card group */
+.radios {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-5);
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-3);
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        font-weight: 500;
+        cursor: pointer;
+
+        &:has(input:checked) {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 1px var(--navy);
+            background: #f3f6fb;
+        }
+    }
+
+    input {
+        accent-color: var(--navy);
+    }
+}
+
+/* Checkboxes and radios */
+.chk,
+.taxseer-check {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    color: var(--ink-2);
+    cursor: pointer;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+    accent-color: var(--navy);
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+}
+
+/* Form layout groups */
+.form-group {
+    margin-bottom: 20px;
+
+    h3 {
+        margin-bottom: 8px;
+    }
+}
+
+.field,
+.f {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 14px;
+    min-width: 0;
+
+    label {
+        font-size: 12.5px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--ink);
+    }
+
+    input,
+    select {
+        height: 38px;
+        width: 100%;
+        min-width: 0;
+        padding: 0 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        font: inherit;
+        color: inherit;
+        outline: none;
+
+        &:focus {
+            // border-color: var(--navy-2);
+            box-shadow: 0 0 0 3px rgba(42, 83, 145, 0.1);
+        }
+
+        &[aria-invalid='true'] {
+            border-color: var(--red);
+        }
+    }
+}
+
+fieldset {
+    border: 0;
+    margin: 0 0 20px;
+    padding: 0;
+
+    legend {
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 12px;
+        color: var(--ink);
+    }
+}
+
+.hint {
+    margin-top: 5px;
+    color: var(--ink-3);
+    font-size: 12px;
+}
+
+.err {
+    margin-top: 5px;
+    color: var(--red);
+    font-size: 12px;
+}
+
+/* Inline table controls */
+.money {
+    width: 100%;
+    height: var(--h-select);
+    padding: 0 10px;
+    text-align: right;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+    font: inherit;
+    color: inherit;
+    outline: none;
+
+    &:focus {
+        border-color: var(--navy-2);
+    }
+
+    &.bad {
+        border-color: var(--red);
+        background: #fff8f7;
+    }
+}
+
+.txt {
+    width: 100%;
+    height: var(--h-select);
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+    font: inherit;
+    color: inherit;
+    outline: none;
+
+    &:focus {
+        border-color: var(--navy-2);
+    }
+}
+
+/* Compact select used in toolbars and table rows */
+.sel-st {
+    height: var(--h-select);
+    width: 78px;
+    padding: 0 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+    color: inherit;
+    font: inherit;
+    outline: none;
+
+    &.year {
+        width: 90px;
+    }
+
+    &.form {
+        width: 140px;
+    }
+
+    &.type {
+        width: 260px;
+        max-width: 100%;
+    }
+}
+
+/* Error cell editor in the bulk check table. The reference draws these as
+   native red inputs; here they are mat-form-fields, so the box comes from
+   Fuse's own --form-field-* slots (wired by components/material.css to the
+   notched outline) and only the metrics are restated here. #fuse is needed to
+   outrank the slot defaults at 1,1,0. */
+#fuse .mat-mdc-form-field.cell-fix {
+    width: 150px;
+    --form-field-border-color: var(--red);
+    --form-field-bg-color: #fff8f7;
+    --mat-form-field-container-height: 34px;
+    --mat-form-field-container-vertical-padding: 0;
+
+    &.text-right input {
+        text-align: right;
+    }
+}
+
+.cbx {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--navy);
+}
+
+.rowmsg {
+    margin-top: 4px;
+    font-size: 12px;
+
+    &.err {
+        color: var(--red);
+    }
+
+    &.warn {
+        color: var(--amber);
+    }
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 24px;
+    cursor: pointer;
+
+    input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+
+        &:checked + span {
+            background: var(--navy-2);
+        }
+
+        &:checked + span::after {
+            transform: translateX(18px);
+        }
+
+        &:focus-visible + span {
+            box-shadow: 0 0 0 3px rgba(49, 95, 141, 0.18);
+        }
+    }
+
+    span {
+        position: absolute;
+        inset: 0;
+        display: block;
+        border-radius: 999px;
+        background: #c8d0d9;
+        transition: background 160ms ease;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+            transition: transform 160ms ease;
+        }
+    }
+}
+
+/* =========================================================
+   SEGMENTED CONTROL
+   ========================================================= */
+
+.seg {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+
+    button {
+        height: 36px;
+        padding: 0 14px;
+        border: 0;
+        border-right: 1px solid var(--line-2);
+        background: none;
+        font: inherit;
+        font-weight: 500;
+        color: var(--ink-2);
+
+        &:last-child {
+            border-right: 0;
+        }
+
+        &[aria-pressed='true'] {
+            background: var(--navy-tint);
+            color: var(--navy);
+            font-weight: 600;
+        }
+    }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 640px) {
+    .row2,
+    .row3 {
+        grid-template-columns: 1fr;
+    }
+
+    .radios {
+        label {
+            flex: 1 0 100%;
+        }
+    }
+}
+
+
+/* =========================================================
+   tabs
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL TABS
+   ========================================================= */
+
+.tabs,
+.ftabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 2px;
+    min-height: 42px;
+
+    button,
+    .ftab {
+        white-space: nowrap;
+        padding: 10px 14px;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        background: transparent;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-2);
+        cursor: pointer;
+        transition:
+            color 160ms ease,
+            border-color 160ms ease;
+
+        &:hover {
+            color: var(--navy);
+        }
+
+        &[aria-selected='true'],
+        &.active {
+            border-bottom-color: var(--navy);
+            color: var(--navy);
+            font-weight: 700;
+        }
+    }
+}
+
+
+/* =========================================================
+   alerts
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL ALERTS & TOASTS
+   ========================================================= */
+
+.callout {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--blue-tint);
+    color: #1d4a7e;
+    font-size: 12.5px;
+    line-height: 1.5;
+
+    &.warn {
+        background: var(--amber-tint);
+        color: var(--amber);
+    }
+}
+
+.toast {
+    position: fixed;
+    z-index: 999;
+    left: 24px;
+    bottom: 84px;
+    max-width: calc(100vw - 48px);
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: #fff;
+    background: var(--ink);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: none;
+}
+
+
+/* =========================================================
+   modals
+   ========================================================= */
+
+
+/* =========================================================
+   TAXSEER GLOBAL MODALS, SCRIM, SLIDE-OVER PANEL & CHOOSER
+   ========================================================= */
+
+.scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    padding: 0;
+    border: 0;
+    appearance: none;
+    background: rgba(23, 33, 46, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+
+    &.show {
+        opacity: 1;
+        pointer-events: auto;
+        animation: scrim-in 0.18s ease;
+    }
+}
+
+@keyframes scrim-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes panel-in {
+    from {
+        transform: translateX(100%);
+    }
+}
+
+/* Right-side slide-over panel */
+.panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 51;
+    display: flex;
+    flex-direction: column;
+    width: min(560px, 100vw);
+    background: var(--paper);
+    box-shadow: -18px 0 40px rgba(8, 22, 44, 0.12);
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    animation: panel-in 0.2s ease;
+
+    &.show {
+        transform: none;
+    }
+
+    > header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--line);
+
+        h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: var(--fw-semibold);
+        }
+    }
+
+    .pb {
+        flex: 1;
+        overflow-y: auto;
+        padding: 18px 22px;
+    }
+
+    > footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--sp-5);
+        padding: 14px 22px;
+        background: var(--soft);
+        border-top: 1px solid var(--line);
+    }
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r);
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--line-2);
+        color: var(--ink);
+    }
+
+    svg, img {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.panel-callout {
+    margin-bottom: var(--sp-9);
+}
+
+.unknown-callout {
+    margin-top: var(--sp-5);
+}
+
+/* Choice rows — shared by the new filing panel and the chooser */
+.file-panel::after {
+    content: "";
+    position: absolute;
+    top: -56px;
+    right: -56px;
+    width: 224px;
+    height: 224px;
+    border: 34px solid rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.choice {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-7);
+    width: 100%;
+    padding: var(--sp-7);
+    border: 1px solid transparent;
+    border-radius: var(--r-lg);
+    background: var(--paper);
+    text-align: left;
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+    transition:
+        transform var(--dur-fast),
+        box-shadow var(--dur-fast),
+        background-color var(--dur-fast),
+        border-color var(--dur-fast);
+
+    > span:nth-child(2) {
+        flex: 1;
+        min-width: 0;
+    }
+
+    b {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 16px;
+        font-weight: var(--fw-semibold);
+    }
+
+    .d {
+        display: block;
+        font-size: 13px;
+        color: var(--ink-2);
+    }
+
+    .ci {
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: var(--r-lg);
+        background: var(--navy-tint);
+        color: var(--navy);
+
+        svg, img {
+            width: 22px;
+            height: 22px;
+        }
+    }
+
+    .go {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: auto;
+        color: var(--navy);
+
+        svg, img {
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    kbd {
+        font-family: inherit;
+    }
+
+    &:focus-visible {
+        outline: 3px solid var(--navy-2);
+        outline-offset: 2px;
+    }
+
+    /* On the navy new filing card: white primary, translucent secondary */
+    &.main {
+        background: #fff;
+        color: var(--ink);
+        box-shadow: 0 6px 18px rgba(8, 22, 44, 0.28);
+
+        .ci {
+            background: var(--navy);
+            color: #fff;
+        }
+
+        .d {
+            color: var(--ink-2);
+        }
+
+        .go {
+            color: var(--navy);
+        }
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(8, 22, 44, 0.34);
+        }
+    }
+
+    &.alt {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.22);
+
+        .ci {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+        }
+
+        .d {
+            color: #c3d1e4;
+        }
+
+        .go {
+            color: #e3eaf3;
+        }
+
+        kbd {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.35);
+            color: #e3eaf3;
+        }
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+    }
+}
+
+/* Excel template picker inside the new filing panel */
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    gap: 2px;
+    margin-top: 10px;
+    padding: 6px;
+
+    border-radius: var(--r-md);
+
+    background: var(--paper);
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        padding: 6px 8px;
+
+        border: 0;
+        border-radius: 5px;
+
+        background: none;
+        color: var(--navy-2);
+
+        font-size: 13px;
+        text-align: left;
+
+        &:hover {
+            background: var(--hover);
+        }
+
+        svg, img {
+            flex: none;
+        }
+    }
+}
+
+/* New filing chooser */
+.chooser {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 51;
+    transform: translate(-50%, -50%);
+    width: min(560px, 94vw);
+    border-radius: 14px;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 24px 60px rgba(8, 22, 44, 0.35);
+
+    .ch-h {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: var(--sp-5);
+        padding: var(--sp-8) 22px;
+        border-radius: 14px 14px 0 0;
+        background: var(--navy);
+        color: #fff;
+
+        h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: var(--fw-semibold);
+            color: #fff;
+        }
+
+        .sub {
+            margin-top: 3px;
+            font-size: 13px;
+            color: #c3d1e4;
+        }
+
+        .x {
+            flex: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 0;
+            border-radius: var(--r-md);
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            cursor: pointer;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            svg, img {
+                width: 15px;
+                height: 15px;
+            }
+        }
+    }
+
+    .ch-b {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-5);
+        padding: var(--sp-8) 22px 22px;
+    }
+
+    .foot {
+        font-size: 13px;
+        color: var(--ink-3);
+    }
+
+    .choice {
+        &:focus-visible {
+            outline: 3px solid var(--navy-2);
+        }
+
+        &.main {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 1px var(--navy);
+
+            &:hover {
+                transform: none;
+                box-shadow: 0 0 0 1px var(--navy);
+                background: var(--hover);
+            }
+        }
+
+        &.alt {
+            background: var(--paper);
+            color: var(--ink);
+            border-color: var(--line);
+
+            .ci {
+                background: var(--navy-tint);
+                color: var(--navy);
+            }
+
+            .d {
+                color: var(--ink-2);
+            }
+
+            .go {
+                color: var(--navy);
+            }
+
+            kbd {
+                background: transparent;
+                border-color: var(--line);
+                color: var(--ink-2);
+            }
+
+            &:hover {
+                border-color: #a9b6c6;
+                background: var(--hover);
+            }
+        }
+    }
+}
+
+/* Confirmation / copy dialogs */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 51;
+    transform: translate(-50%, -50%);
+    width: min(460px, 92vw);
+    border-radius: var(--r-xl);
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+
+    .db {
+        padding: 20px 22px;
+
+        h2 {
+            margin: 0 0 var(--sp-3);
+            font-size: 17px;
+            font-weight: var(--fw-semibold);
+        }
+
+        p {
+            margin: 0;
+        }
+    }
+
+    .df {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--sp-5);
+        padding: var(--sp-5) 22px;
+        background: var(--soft);
+        border-top: 1px solid var(--line);
+    }
+}
+
+.switch-pop {
+    position: absolute;
+    z-index: 50;
+    top: calc(100% + 6px);
+    left: 0;
+    width: min(400px, 90vw);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: 0 12px 30px rgba(23, 33, 46, 0.15);
+    padding: 9px;
+
+    input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+    }
+}
+
+.switch-list {
+    max-height: 310px;
+    overflow-y: auto;
+
+    button {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        padding: 9px 10px;
+        border: 0;
+        background: #fff;
+        text-align: left;
+        border-radius: var(--r);
+        cursor: pointer;
+
+        &:hover {
+            background: var(--navy-tint);
+        }
+    }
+
+    small {
+        color: var(--ink-3);
+    }
+}
+
+@media (max-width: 640px) {
+    .panel > footer {
+        flex-wrap: wrap;
+    }
+
+    .chooser .ch-b,
+    .chooser .ch-h {
+        padding-inline: var(--sp-7);
+    }
+
+    .choice .go kbd {
+        display: none;
+    }
+}
+
+/* =========================================================
+   ANGULAR MATERIAL BRIDGE
+   Material renders its own internal DOM, so the Taxseer
+   primitives above never reach it. This block is the only
+   place allowed to restate them, and it must read from the
+   same tokens. Template markup and directives stay untouched.
+   ========================================================= */
+:root,
+.cdk-overlay-container {
+  --mat-button-text-container-shape: var(--r);
+  --mat-button-text-container-height: var(--h-control);
+  --mat-button-text-horizontal-padding: var(--sp-6);
+  --mat-button-outlined-container-shape: var(--r);
+  --mat-button-outlined-container-height: var(--h-control);
+  --mat-button-outlined-horizontal-padding: var(--sp-6);
+  --mat-button-filled-container-shape: var(--r);
+  --mat-button-filled-container-height: var(--h-control);
+  --mat-button-filled-horizontal-padding: var(--sp-6);
+  --mat-form-field-container-height: var(--h-control);
+  --mat-form-field-container-vertical-padding: var(--sp-3);
+  --mat-select-trigger-text-size: var(--fs-body);
+  --mat-option-label-text-size: var(--fs-body);
+}
+
+/* Fuse ships html.scheme-dark, so every --mat-sys-* token written as
+   light-dark() resolves to its dark branch and leaks near-black surfaces
+   into Material controls. Taxseer is a light design; opt the shell and the
+   overlay panes back in so the tokens resolve light without touching the
+   rest of the app's theme. */
+.taxseer-layout,
+.cdk-overlay-container {
+  color-scheme: light;
+}
+
+/* Material's component CSS reads --mat-sys-* semantic slots, not the Taxseer
+   palette, so each control keeps falling back to Material's own M3 greys.
+   Remapping the slots once here is what makes mat-input, mat-select, mat-chip
+   and dialogs pick up the design system without restating them per component. */
+.taxseer-layout,
+.cdk-overlay-container {
+  --mat-sys-primary: var(--navy);
+  --mat-sys-on-primary: var(--paper);
+  --mat-sys-primary-container: var(--navy-tint);
+  --mat-sys-on-primary-container: var(--navy);
+  --mat-sys-secondary: var(--navy-2);
+  --mat-sys-on-secondary: var(--paper);
+
+  --mat-sys-surface: var(--paper);
+  --mat-sys-surface-bright: var(--paper);
+  --mat-sys-surface-dim: var(--canvas);
+  --mat-sys-surface-container-lowest: var(--paper);
+  --mat-sys-surface-container-low: var(--soft);
+  --mat-sys-surface-container: var(--soft);
+  --mat-sys-surface-container-high: var(--hover);
+  --mat-sys-surface-container-highest: var(--line-2);
+  --mat-sys-surface-variant: var(--line-2);
+  --mat-sys-on-surface: var(--ink);
+  --mat-sys-on-surface-variant: var(--ink-3);
+  --mat-sys-inverse-surface: var(--ink);
+  --mat-sys-inverse-on-surface: var(--paper);
+
+  --mat-sys-outline: var(--line);
+  --mat-sys-outline-variant: var(--line-2);
+  --mat-sys-error: var(--red);
+  --mat-sys-on-error: var(--paper);
+  --mat-sys-error-container: var(--red-tint);
+  --mat-sys-on-error-container: var(--red);
+
+  /* Material restates these on :root after this file, so declaring them there
+     loses on source order. A declaration on the shell inherits down to every
+     control and element proximity outranks that later :root rule. */
+  --mat-button-text-label-text-color: var(--ink);
+  --mat-button-outlined-label-text-color: var(--ink);
+  --mat-button-filled-label-text-color: var(--paper);
+  --mat-button-unelevated-label-text-color: var(--paper);
+  --mat-button-text-icon-color: var(--ink);
+  --mat-button-outlined-icon-color: var(--ink);
+  --mat-button-filled-icon-color: var(--paper);
+  --mat-button-unelevated-icon-color: var(--paper);
+
+  /* mat-tab-nav-bar declares this outright rather than reading --mat-sys-*,
+     so the header divider needs its own slot. */
+  --mat-tab-divider-color: var(--line-2);
+}
+
+/* Fuse's own #fuse kbd outranks the element-level Taxseer rule above. */
+#fuse kbd {
+  color: var(--ink-2);
+  border-color: var(--line);
+  background: var(--paper);
+}
+
+/* mat-form-field is styled by src/styles/components/material.css, which reads
+   Fuse's --form-field-* slots at #fuse .mat-mdc-form-field specificity. Those
+   outrank every --mdc-* / --mat-sys-* remap above, so the palette has to be
+   restated through the same slots. */
+#fuse .mat-mdc-form-field {
+  --form-field-text-color: var(--ink);
+  --form-field-hint-color: var(--ink-3);
+  --form-field-placeholder-color: var(--ink-3);
+  --form-field-affix-color: var(--ink-3);
+  --form-field-bg-color: var(--paper);
+  --form-field-border-color: var(--line);
+  --form-field-border-color-error: var(--red);
+  --form-field-border-radius: var(--r);
+  --form-field-font-size: var(--fs-body);
+  --form-field-line-height: var(--lh);
+  --form-field-label-font-size: var(--fs-body);
+  --form-field-label-line-height: var(--lh);
+  --form-field-label-font-weight: var(--fw-medium);
+  --form-field-subscript-font-size: var(--fs-small);
+}
+
+#fuse .mat-mdc-form-field.mat-focused {
+  --form-field-outline-color: var(--navy);
+}
+
+button.mat-mdc-button,
+button.mat-mdc-outlined-button,
+button.mat-mdc-unelevated-button {
+  min-width: 0;
+  min-height: var(--h-control);
+
+  height: var(--h-control);
+  border-radius: var(--r);
+  font: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  letter-spacing: normal;
+  line-height: var(--lh);
+  text-transform: none;
+  box-shadow: none;
+}
+
+button.mat-mdc-button.btn,
+button.mat-mdc-outlined-button.btn,
+button.mat-mdc-unelevated-button.btn {
+  box-sizing: border-box;
+  gap: var(--sp-3);
+  min-width: 0;
+  min-height: var(--h-control);
+  height: var(--h-control);
+  padding: 0 var(--sp-6);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  letter-spacing: normal;
+  line-height: var(--lh);
+  text-transform: none;
+  box-shadow: none;
+}
+
+button.mat-mdc-button.btn.primary,
+button.mat-mdc-unelevated-button.btn.primary {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: #fff;
+}
+
+button.mat-mdc-button.btn.ghost,
+button.mat-mdc-button.btn.link {
+  border-color: transparent;
+  background: transparent;
+}
+
+.mat-mdc-chip,
+.mat-mdc-standard-chip {
+  --mdc-chip-container-shape-radius: var(--r-pill);
+  --mdc-chip-label-text-color: var(--ink-2);
+  --mdc-chip-elevated-container-color: var(--line-2);
+  --mdc-chip-elevated-selected-container-color: var(--navy-tint);
+  --mdc-chip-focus-container-color: var(--line-2);
+  --mdc-chip-disabled-container-color: var(--line-2);
+  --mdc-chip-with-icon-selected-label-text-color: inherit;
+  --mdc-chip-focus-label-text-color: inherit;
+  --mdc-chip-hover-label-text-color: inherit;
+
+  /* Angular's wrapper reads these --mat-chip-* props and falls back to
+     --mat-sys-on-surface-variant, which is an oklch grey outside the palette. */
+  --mat-chip-label-text-color: var(--ink-2);
+  --mat-chip-selected-label-text-color: var(--navy);
+  --mat-chip-disabled-label-text-color: var(--ink-3);
+  --mat-chip-with-icon-icon-color: currentColor;
+  --mat-chip-with-icon-selected-icon-color: var(--navy);
+  --mat-chip-trailing-action-text-color: var(--ink-3);
+  --mat-chip-selected-trailing-action-text-color: var(--navy);
+  --mat-chip-elevated-container-color: var(--line-2);
+  --mat-chip-focus-container-color: var(--line-2);
+  --mat-chip-disabled-container-color: var(--line-2);
+
+  font-family: inherit;
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh);
+  border-radius: var(--r-pill);
+}
+
+/* mat-primary would otherwise paint the label with a Material theme colour. */
+
+/* The wizard's back link is a mat-button but reads as a text link, so it takes
+   the palette through Material's own label slot rather than fighting it. */
+.taxseer-layout .back-link.mat-mdc-button {
+  --mat-button-text-label-text-color: var(--navy-2);
+
+  min-height: 0;
+  padding: 0;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+.mat-mdc-chip .mat-mdc-chip-action-label,
+.mat-mdc-chip .mdc-evolution-chip__text-label {
+  color: inherit;
+  font: inherit;
+}
+
+.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled) .mdc-evolution-chip__text-label {
+  color: inherit;
+}
+
+/* The wizard's mode badge is a mat-chip sitting in an h1, so it has to drop
+   Material's fixed chip height and cell padding and take the inline badge box
+   from the reference instead. */
+mat-chip.mode-pill,
+.mat-mdc-chip.mode-pill {
+  --mdc-chip-elevated-container-color: var(--navy-tint);
+  --mdc-chip-label-text-color: var(--navy);
+  --mat-chip-label-text-color: var(--navy);
+  --mat-chip-elevated-container-color: var(--navy-tint);
+
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border-radius: var(--r-xl);
+  background: var(--navy-tint);
+  color: var(--navy);
+  font-size: var(--fs-small);
+  line-height: var(--lh);
+  vertical-align: middle;
+  cursor: default;
+
+  .mdc-evolution-chip__cell {
+    padding: 3px var(--sp-4);
+  }
+}
+
+.mat-mdc-tab-group,
+.mat-mdc-tab-nav-bar {
+  --mdc-tab-indicator-active-indicator-color: var(--navy);
+  --mat-tab-header-active-label-text-color: var(--navy);
+  --mat-tab-header-inactive-label-text-color: var(--ink-2);
+  --mat-tab-header-active-ripple-color: transparent;
+  --mat-tab-header-inactive-ripple-color: transparent;
+  font-family: inherit;
+}
+
+/* Semantic panels that are rendered with mat-stroked-button / mat-button.
+   Material gives every button a fixed-height, centred, rounded pill and wraps
+   the projected content in .mdc-button__label, so the .form-option and .tile
+   cells lost their tall left-aligned box and their child rules stopped
+   matching. The tags and directives stay put; only the box is handed back to
+   the owning component class, and the label wrapper becomes the flex column. */
+.mdc-button.form-option,
+.mdc-button.tile {
+  display: flex;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.mdc-button.form-option .mdc-button__label,
+.mdc-button.tile .mdc-button__label {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  gap: inherit;
+  align-items: stretch;
+  text-align: left;
+}
+
+/* Restated here because the reset above outranks the plain component rule. */
+.mdc-button.form-option {
+  min-height: 64px;
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  gap: var(--sp-0);
+}
+
+.mdc-button.tile {
+  border-radius: var(--r-lg);
+  padding: var(--sp-5) var(--sp-7);
+  border: 1px solid var(--line);
+}
+
+/* Material's outlined border rule is `.mdc-button--outlined:not(:disabled)`,
+   which already sits at three classes, so the pressed cell needs the element
+   name to outrank it. */
+button.mdc-button.form-option[aria-pressed='true'],
+button.mdc-button.tile[aria-pressed='true'] {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 1px var(--navy);
+}
+
+button.mdc-button.form-option[aria-pressed='true'] {
+  background: #f3f6fb;
+}
+
+button.mdc-button.form-option:hover:not([aria-pressed='true']),
+button.mdc-button.tile:hover:not([aria-pressed='true']) {
+  border-color: #a9b6c6;
+}
+
+/* Material tints the whole button surface on hover, which reads as a second
+   background behind the cell. Excluded on the pressed cell so its tint stays. */
+.mdc-button.form-option:hover:not([aria-pressed='true']),
+.mdc-button.tile:hover:not([aria-pressed='true']) {
+  background: none;
+}
+
+.mat-mdc-tab .mdc-tab__text-label,
+.mat-mdc-tab-link .mdc-tab__text-label {
+  font-family: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh);
+}
+
+/* The wizard step rail is a mat-tab-nav-bar, so the reference's five equal
+   columns cannot be put on the nav itself: Material inserts two pagination
+   buttons around a scroller, and the links sit two levels deeper inside
+   .mat-mdc-tab-links. The projected dot and label are also not children of
+   the link, they are wrapped in .mdc-tab__text-label, which is where the
+   row layout has to live. No markup or directive changes are involved. */
+.steps.mat-mdc-tab-nav-bar {
+  display: block;
+  overflow: visible;
+  background: none;
+}
+
+.steps .mat-mdc-tab-header-pagination,
+.steps .mdc-tab-indicator,
+.steps .mdc-tab__ripple {
+  display: none;
+}
+
+/* Unreachable steps are disabled, but the reference only changes the cursor for
+   them; Material's 0.4 disabled opacity washed the whole rail out. */
+.steps .mat-mdc-tab-link {
+  opacity: 1;
+}
+
+.steps .mat-mdc-tab-link-container {
+  overflow: visible;
+  border-bottom: 0;
+}
+
+.steps .mat-mdc-tab-links {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--sp-1);
+}
+
+.steps .mat-mdc-tab-link {
+  height: auto;
+  min-width: 0;
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  border-bottom: 3px solid var(--line-2);
+  font-size: var(--fs-body);
+  opacity: 1;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+/* Unreachable steps are disabled, but the reference only dims the dot border
+   and changes the cursor — Material's own .mat-mdc-tab.mat-mdc-tab-disabled
+   washes the whole cell to 0.4 opacity. That rule is two classes and is
+   injected after the global stylesheets, so the override needs three.
+   pointer-events comes back on so the cursor rule is actually painted; the
+   template's own canReach() guard still blocks navigation. */
+.steps .mat-mdc-tab-link.mat-mdc-tab-disabled {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.steps .mat-mdc-tab-link .mdc-tab__content {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  gap: var(--sp-4);
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+/* MDC gives the content wrapper `flex-grow: inherit`, so it picks up the tab's
+   own flex-grow of 0 and the projected label collapses to zero width. Both this
+   and the text label have to be told to grow explicitly. */
+.steps .mat-mdc-tab-link .mdc-tab__text-label {
+  flex: 1 1 auto;
+  gap: var(--sp-4);
+  justify-content: flex-start;
+  align-items: flex-start;
+  min-width: 0;
+  width: 100%;
+  color: inherit;
+  font-weight: inherit;
+  text-transform: none;
+}
+
+.steps .step-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mat-mdc-form-field {
+  font-family: inherit;
+  font-size: var(--fs-body);
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.mat-mdc-form-field .mdc-text-field--outlined {
+  border-radius: var(--r);
+}
+
+/* Select trigger and option list must follow the same scale as .sel */
+mat-select.sel,
+.mat-mdc-select-trigger,
+.mat-mdc-select-value,
+.mat-mdc-select-placeholder {
+  font-size: var(--fs-body);
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.mat-mdc-option {
+  font-size: var(--fs-body);
+  line-height: var(--lh);
+  color: var(--ink);
+  min-height: var(--h-control);
+}
+
+/* Table-inline cells are Material controls, so the .money / .txt / .sel-st /
+   .chk boxes drawn above never reach them. The class lands on the host, which
+   is exactly where the box has to be painted; these rules only undo what the
+   component adds on top (underline, own height, own type scale). */
+input.mat-mdc-input-element.money,
+input.mat-mdc-input-element.txt {
+  box-sizing: border-box;
+  font: inherit;
+  color: var(--ink);
+}
+
+mat-select.sel-st {
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+mat-select.sel-st .mat-mdc-select-trigger {
+  width: 100%;
+  height: 100%;
+}
+
+/* A select outside a mat-form-field keeps its own underline and focus ripple.
+   The reference cell is a closed box, so both come off. */
+mat-select.sel-st .mat-mdc-select-underline,
+mat-select.sel-st .mat-mdc-select-ripple {
+  display: none;
+}
+
+mat-checkbox.chk {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: var(--lh);
+
+  --mdc-checkbox-selected-color: var(--navy);
+  --mdc-checkbox-selected-focus-color: var(--navy);
+  --mdc-checkbox-selected-hover-color: var(--navy);
+  --mdc-checkbox-selected-pressed-color: var(--navy);
+  --mdc-checkbox-unselected-color: var(--line);
+  --mdc-checkbox-unselected-focus-color: var(--ink-3);
+  --mdc-checkbox-unselected-hover-color: var(--ink-3);
+  --mdc-checkbox-unselected-pressed-color: var(--navy);
+  --mdc-checkbox-disabled-color: var(--line-2);
+
+  .mdc-checkbox {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  .mdc-checkbox__label {
+    flex: 1 1 auto;
+  }
+}
+
+
+/* Amounts grid: the manual wizard's per-recipient 1099 entry table. Tighter
+   cells than the global table and a bottom-aligned header so the box number
+   sits under the column name. */
+.entry {
+    min-width: 1060px;
+
+    th {
+        vertical-align: bottom;
+        line-height: 1.25;
+
+        .box {
+            display: block;
+            font-size: 11.5px;
+            font-weight: var(--fw-medium);
+            color: var(--ink-3);
+        }
+    }
+
+    td {
+        padding: var(--sp-3) 10px;
+    }
+}
+
+tr.totals td {
+    background: var(--soft);
+    font-weight: var(--fw-semibold);
+}
+
+/* Expanded paper-form row. Own background, so the global row hover is
+   restated or the cell flashes grey under the form preview. */
+tr.more td {
+    background: #fafbfc;
+    padding: 0 10px var(--sp-6);
+}
+
+tr.more:hover td {
+    background: #fafbfc;
+}
+
+/* Row expander. The reference draws it as a bare 30px ghost cell. mat-mdc-button-base
+   is on every Material button, so this outranks the 32px .small-btn bridge no matter
+   where either rule sits in the file. */
+.taxseer-main button.mat-mdc-button-base.btn.small-btn.expand-button {
+    width: 30px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    justify-content: center;
+
+    .mdc-button__label {
+        justify-content: center;
+        width: 100%;
+    }
+
+    img,
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* TaxSeer page rules that depend on selector relationships or table structure. */
+
+/* Selector-dependent rules retained from dashboard.scss. */
+/* =========================================================
+   DASHBOARD SPECIFIC LAYOUT & GRIDS
+   ========================================================= */
+
+/* Resume filing */
+
+/* New filing panel */
+
+/* Templates */
+
+/* Dashboard summary */
+
+/* Filer table card */
+
+/* =========================================================
+   FILING WIZARD SPECIFIC STYLES
+   Ported from the reference .wiz-* chrome. Both modes are five
+   steps and share this shell, so the whole wizard is styled here
+   rather than page by page. Rules that have to reach Material's
+   internal tab DOM live in the bridge section below.
+   ========================================================= */
+
+.wizard {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--canvas);
+}
+
+.wizard-inner {
+    width: 100%;
+    // max-width: var(--w-content);
+    margin: 0 auto;
+}
+
+/* --- Header ------------------------------------------------ */
+.wizard-header {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+
+    .wizard-inner {
+        padding: var(--sp-7) var(--sp-10) 0;
+    }
+}
+
+.wizard-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-5);
+    margin-bottom: var(--sp-6);
+
+    h1 {
+        margin: 0;
+        font-size: var(--fs-display);
+        font-weight: var(--fw-semibold);
+        letter-spacing: -.01em;
+    }
+}
+
+.mode-pill {
+    vertical-align: middle;
+    margin-left: var(--sp-4);
+    padding: 3px var(--sp-4);
+    border-radius: var(--r-xl);
+    background: var(--navy-tint);
+    color: var(--navy);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+}
+
+.title-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--navy-2);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+
+    img {
+        width: 15px;
+        height: 15px;
+    }
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.saved {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    color: var(--green);
+    font-size: var(--fs-caption);
+
+    img {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* --- Step rail --------------------------------------------- */
+/* No gap here: the anchor's in-flow child is MDC's content wrapper, not the
+   dot and label. The gap belongs on .mdc-tab__content below. */
+.step {
+    display: flex;
+    align-items: flex-start;
+    min-width: 0;
+    padding: var(--sp-4) var(--sp-5) var(--sp-5);
+    border: 0;
+    border-bottom: 3px solid var(--line-2);
+    background: none;
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--dur-fast) ease;
+
+    &[disabled],
+    &.mat-mdc-tab-disabled {
+        cursor: default;
+    }
+}
+
+.step-dot {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    color: var(--ink-3);
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+}
+
+.step-label {
+    display: block;
+    min-width: 0;
+    color: var(--ink-3);
+    font-weight: var(--fw-semibold);
+}
+
+.step-body {
+    min-width: 0;
+}
+
+.step-summary {
+    display: block;
+    overflow: hidden;
+    color: var(--ink-2);
+    font-size: var(--fs-caption);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.step.completed {
+    .step-dot {
+        border-color: var(--green);
+        background: var(--green);
+        color: var(--paper);
+    }
+
+    .step-label {
+        color: var(--ink);
+    }
+
+    &:hover {
+        background: var(--hover);
+    }
+}
+
+.step.current {
+    border-bottom-color: var(--navy);
+
+    .step-dot {
+        border-color: var(--navy);
+        background: var(--navy);
+        color: var(--paper);
+    }
+
+    .step-label {
+        color: var(--navy);
+    }
+}
+
+/* --- Body -------------------------------------------------- */
+.wizard-body {
+    flex: 1 1 auto;
+    width: 100%;
+    // max-width: var(--w-content);
+    margin: 0 auto;
+    /* 22px is the reference wiz-body top pad and has no token. */
+    padding: 22px var(--sp-10) 130px;
+}
+
+/* --- Footer ------------------------------------------------ */
+.wizard-footer {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 25;
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 16px rgb(23 33 46 / 0.06);
+
+    .wizard-inner {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-6);
+        padding: var(--sp-5) var(--sp-10);
+    }
+}
+
+.footer-message {
+    flex: 1;
+    color: var(--ink-2);
+}
+
+.footer-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
+/* --- Step 2: tax year and form ----------------------------- */
+.year-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-6);
+    margin-bottom: var(--sp-8);
+}
+
+.year-title {
+    margin: 0;
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-semibold);
+}
+
+.kv-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+
+    .card {
+        padding: var(--sp-6) var(--sp-7);
+    }
+
+    .card h3 {
+        margin: 0 0 var(--sp-3);
+        color: var(--ink);
+        font-size: var(--fs-h2);
+        font-weight: var(--fw-semibold);
+    }
+}
+
+.form-group h3 {
+    margin: var(--sp-8) 0 var(--sp-3);
+    color: var(--ink-3);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-3);
+}
+
+// .form-option {
+//     display: flex;
+//     flex-direction: column;
+//     gap: var(--sp-0);
+//     min-height: 64px;
+//     padding: var(--sp-4) var(--sp-5);
+//     border: 1px solid var(--line);
+//     border-radius: var(--r-md);
+//     background-color: var(--paper);
+
+//     color: inherit;
+//     text-align: left;
+
+
+
+
+
+//     strong {
+//         font-weight: var(--fw-semibold);
+//     }
+
+//     /* Direct child when the cell is a plain button, one level deeper when
+//        mat-stroked-button wraps the projection in .mdc-button__label. Both the
+//        chip row and Material's wrapper are excluded, or the caption size would
+//        leak into the form number. */
+//     > span:not(.tagline):not(.mdc-button__label),
+//     > .mdc-button__label > span:not(.tagline) {
+//         color: var(--ink-3);
+//         font-size: var(--fs-caption);
+//     }
+
+//     &:hover {
+//         border-color: #a9b6c6;
+//         background: var(--hover);
+//     }
+
+//     &[aria-pressed='true'] {
+//         border-color: var(--navy);
+//         background: #f3f6fb;
+//         box-shadow: 0 0 0 1px var(--navy);
+//     }
+// }   
+
+// .form-option.abc {
+//   background-color: #e8efff !important;
+//   color: #2a5391 !important;
+//   border-color: #2a5391 !important;
+// }
+
+
+.form-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-0);
+  min-height: 64px;
+  padding: var(--sp-4) var(--sp-5);
+
+  border: 1px solid var(--line) !important;
+  border-radius: var(--r-md);
+  background: var(--paper) !important;
+  color: inherit;
+  text-align: left;
+
+  &.mat-mdc-outlined-button[aria-pressed='true'],
+  &[aria-pressed='true'] {
+    background: #e8efff !important;
+    color: #2a5391 !important;
+    border-color: #2a5391 !important;
+    box-shadow: 0 0 0 1px #2a5391;
+  }
+
+  &:hover {
+    background: #f3f6fb !important;
+  }
+}
+
+
+.tagline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+}
+
+/* --- Step 3 manual: recipients ----------------------------- */
+.toolbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-5);
+}
+
+.rec-table {
+    .name {
+        font-weight: var(--fw-semibold);
+    }
+}
+
+/* --- Step 3 bulk: upload ----------------------------------- */
+.upload-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--sp-9);
+    align-items: start;
+}
+
+.drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3);
+    padding: var(--sp-14) var(--sp-10);
+    border: 2px dashed #a9b6c6;
+    border-radius: var(--r-lg);
+    background: var(--paper);
+    text-align: center;
+    cursor: pointer;
+
+    img {
+        width: 34px;
+        height: 34px;
+    }
+
+    &:hover,
+    &.over {
+        border-color: var(--navy);
+        background: #f3f6fb;
+    }
+}
+
+.template-card {
+    padding: var(--sp-6) var(--sp-7);
+
+    h3 {
+        margin: 0;
+        font-size: var(--fs-h2);
+        font-weight: var(--fw-semibold);
+    }
+
+    .columns {
+        margin-top: var(--sp-7);
+
+        > b {
+            display: block;
+            margin-bottom: var(--sp-3);
+            font-size: var(--fs-caption);
+            font-weight: var(--fw-semibold);
+        }
+
+        ul {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            font-size: var(--fs-small);
+            max-height: 260px;
+            overflow: auto;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            gap: var(--sp-3);
+        }
+    }
+}
+
+/* --- Step 4 bulk: check data ------------------------------- */
+.check-table {
+    min-width: 980px;
+}
+
+// .row-actions {
+//     display: flex;
+//     flex-wrap: wrap;
+//     gap: var(--sp-3);
+// }
+
+/* --- Step 5: review ---------------------------------------- */
+.delivery-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-7);
+    padding: var(--sp-6) var(--sp-7);
+    border-bottom: 1px solid var(--line-2);
+    margin-bottom: 0;
+
+    /* The reference bolds the label with a <b>; the template uses a bare label
+       so the weight has to come from the shell. */
+    label {
+        font-weight: var(--fw-semibold);
+    }
+}
+
+/* =========================================================
+   RESPONSIVE LAYOUT & MEDIA QUERIES
+   ========================================================= */
+
+
+/* Selector-dependent rules retained from filer-details.scss. */
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+/* =========================================================
+   PAGE BODY
+   ========================================================= */
+
+/* =========================================================
+   FILINGS PIPELINE
+   ========================================================= */
+
+/* =========================================================
+   DOWNLOADS / SUMMARY
+   ========================================================= */
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+
+/* Selector-dependent rules retained from nec-amounts.scss. */
+
+
+/* HEADER */
+
+/* TABLE WRAPPER */
+
+/* TABLE HEADER */
+taxseer-nec-amounts .nec-table thead {
+  background: #f5f7fa;
+}
+
+taxseer-nec-amounts .nec-table thead tr {
+  height: 48px;
+}
+
+taxseer-nec-amounts .nec-table th {
+  padding: 8px 10px;
+  border-bottom: 1px solid #d1dbe6;
+  color: #243b5a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 15px;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+taxseer-nec-amounts .nec-table th span {
+  display: block;
+}
+
+taxseer-nec-amounts .nec-table th small {
+  display: block;
+  margin-top: 1px;
+  color: #526788;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+taxseer-nec-amounts .nec-table tbody td {
+  padding: 10px;
+  vertical-align: middle;
+}
+
+/* STATE BOX */
+
+/* TOTAL FOOTER */
+taxseer-nec-amounts .nec-table tfoot {
+  background: #f5f7fa;
+}
+
+taxseer-nec-amounts .nec-table tfoot tr {
+  height: 39px;
+}
+
+taxseer-nec-amounts .nec-table tfoot td {
+  padding: 8px 10px;
+  border-top: 1px solid #e0e6ed;
+  color: #10233f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* RESPONSIVE */
+
+
+/* Selector-dependent rules retained from orders.scss. */
+/* Orders page: layout, tiles, toolbar, expandable rows and foot notes are
+   shared Taxseer styles (src/styles/styles.scss). Add page-only rules
+   below. */
+
+
+/* Selector-dependent rules retained from recipients.scss. */
+/* =========================================================
+   RECIPIENTS PAGE
+   Shared chrome (.page, .head, .tiles, .tile, .toolbar, .search,
+   .exp, .flink, .mini, .tbl tr.more, .foot-note, .prog, .issue,
+   .note and their responsive rules) lives in
+   src/styles/styles.scss — only page-specific rules below.
+   ========================================================= */
+
+
+/* Selector-dependent rules retained from settings.scss. */
+/* =========================================================
+   SETTINGS PROFILE SECTION
+   ========================================================= */
+
+/* Save bar */
+
+/* Security settings rows */
+
+/* =========================================================
+   PERMISSIONS MATRIX TABLE
+   ========================================================= */
+app-settings .tbl.perm .grp td {
+  padding-top: 11px;
+  padding-bottom: 11px;
+  background: #f3f6f8;
+  color: #344353 !important;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   SIDE PANEL & DRAWER
+   .panel / .radios chrome lives in src/styles/styles.scss
+   and _forms.scss — only the settings variants stay here.
+   ========================================================= */
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+
+
+/* Reference dashboard layout + Material button content alignment */
+.taxseer-main button.choice.mat-mdc-button-base { box-sizing:border-box; display:flex !important; align-items:center; justify-content:flex-start; width:100%; min-width:0; min-height:0; height:auto; padding:var(--sp-5) var(--sp-6); border-radius:var(--r-lg); line-height:var(--lh); text-align:left; white-space:normal; }
+.taxseer-main button.choice.mat-mdc-button-base .mdc-button__label { display:flex !important; align-items:center; gap:var(--sp-7); width:100%; white-space:normal; }
+.taxseer-main button.choice.mat-mdc-button-base .mdc-button__label > span:nth-of-type(2) { flex:1; min-width:0; text-align:left; }
+/* Match the supplied TaxSeer header while keeping its current navigation behavior. */
+taxseer-top-nav.taxseer-top-nav { background:#1c3f6e !important; border-bottom:0 !important; box-shadow:none !important; }
+taxseer-top-nav .taxseer-brand__logo { display:none !important; }
+taxseer-top-nav .taxseer-brand::after { content:'TAXSEER'; color:#fff; font-size:17px; font-weight:700; letter-spacing:.12em; }
+taxseer-top-nav .taxseer-navigation__link--active { background:#2f5a93 !important; color:#fff !important; }
+taxseer-top-nav .taxseer-actions { gap:6px !important; }
+taxseer-top-nav .taxseer-cart { min-height:36px !important; padding:0 12px !important; border-radius:6px !important; background:#f2c230 !important; color:#1c1a12 !important; }
+
+/* Match Material text buttons to the TaxSeer choice and attention rows. */
+.taxseer-main button.choice.main .mdc-button__label { color:var(--ink) !important; }
+.taxseer-main button.choice.alt .mdc-button__label { color:#fff !important; }
+.taxseer-main button.attention.mat-mdc-button-base { box-sizing:border-box; display:flex !important; align-items:flex-start; justify-content:flex-start; width:100%; min-width:0; min-height:66px; height:auto; padding:12px 18px; border:0; border-bottom:1px solid var(--line-2); border-radius:0; line-height:1.45; text-align:left; white-space:normal; }
+.taxseer-main button.attention.mat-mdc-button-base .mdc-button__label { display:flex !important; align-items:flex-start; gap:12px; width:100%; color:var(--ink) !important; line-height:1.45; text-align:left; white-space:normal; }
+.taxseer-main button.mat-mdc-button.btn.small-btn, .taxseer-main button.mat-mdc-outlined-button.btn.small-btn, .taxseer-main button.mat-mdc-unelevated-button.btn.small-btn { min-height:32px; height:32px; padding:0 10px; font-size:var(--fs-small); }
+.mat-mdc-chip.pill { --mdc-chip-elevated-container-color:var(--line-2); --mdc-chip-label-text-color:var(--ink-2); box-sizing:border-box; display:inline-flex; align-items:center; height:auto; min-height:0; padding:2px 9px !important; border:0 !important; border-radius:var(--r-pill) !important; background:var(--line-2) !important; color:var(--ink-2) !important; box-shadow:none !important; font-size:var(--fs-micro) !important; font-weight:var(--fw-semibold); line-height:var(--lh); }
+.mat-mdc-chip.pill.warning-pill { --mdc-chip-elevated-container-color:var(--amber-tint); --mdc-chip-label-text-color:var(--amber); background:var(--amber-tint) !important; color:var(--amber) !important; }
+.mat-mdc-chip.pill.neutral-pill { --mdc-chip-elevated-container-color:var(--line-2); --mdc-chip-label-text-color:var(--ink-2); }
+.mat-mdc-chip.pill .mdc-evolution-chip__text-label { color:inherit !important; }
+
+/* TaxSeer Material summary tiles and tab links match the compact reference cards. */
+.taxseer-main button.tile.mat-mdc-button-base { box-sizing:border-box; display:flex !important; flex-direction:column; align-items:flex-start; justify-content:center; width:100%; min-width:0; height:auto; padding:var(--sp-5) var(--sp-7); border:1px solid var(--line); border-radius:var(--r-lg); background:var(--paper); color:var(--ink); font:inherit; font-size:var(--fs-body); font-weight:var(--fw-regular); line-height:var(--lh); text-align:left; white-space:normal; }
+.taxseer-main button.tile.mat-mdc-button-base .mdc-button__label { display:flex !important; flex-direction:column; align-items:flex-start; width:100%; color:inherit; line-height:var(--lh); white-space:normal; }
+.taxseer-main button.tile.mat-mdc-button-base .v { display:block; font-size:var(--fs-stat); font-weight:var(--fw-semibold); line-height:var(--lh); }
+.taxseer-main button.tile.mat-mdc-button-base[aria-pressed='true'] { border-color:var(--navy); box-shadow:0 0 0 1px var(--navy); background:#f3f6fb; }
+/* Compact link tabs. Scoped away from .steps because the wizard rail is a grid
+   of reference step cells and brings its own padding. */
+.taxseer-main .mat-mdc-tab-nav-bar:not(.steps) .mat-mdc-tab-links { justify-content:flex-start !important; }
+.taxseer-main .mat-mdc-tab-nav-bar:not(.steps) .mat-mdc-tab-link { flex:0 0 auto !important; min-width:0 !important; width:auto !important; padding:0 14px !important; }
+.settings-page .head { display:block !important; }
+.settings-page .head > p { margin-top:4px; }
+
+/* Material status chips retain TaxSeer success, warning, error, and info colors. */
+.mat-mdc-chip.pill.p-warn, .mat-mdc-chip.pill.warning-pill { --mdc-chip-elevated-container-color:var(--amber-tint); --mdc-chip-label-text-color:var(--amber); background:var(--amber-tint) !important; color:var(--amber) !important; }
+.mat-mdc-chip.pill.p-ok, .mat-mdc-chip.pill.success-pill { --mdc-chip-elevated-container-color:var(--green-tint); --mdc-chip-label-text-color:var(--green); background:var(--green-tint) !important; color:var(--green) !important; }
+.mat-mdc-chip.pill.p-err, .mat-mdc-chip.pill.danger { --mdc-chip-elevated-container-color:var(--red-tint); --mdc-chip-label-text-color:var(--red); background:var(--red-tint) !important; color:var(--red) !important; }
+.mat-mdc-chip.pill.p-info, .mat-mdc-chip.pill.info { --mdc-chip-elevated-container-color:var(--blue-tint); --mdc-chip-label-text-color:var(--blue); background:var(--blue-tint) !important; color:var(--blue) !important; }
+.mat-mdc-chip.pill.p-neutral { --mdc-chip-elevated-container-color:var(--line-2); --mdc-chip-label-text-color:var(--ink-2); }
+
+
+
+
+
+// common css for all btns //
+.head-actions button{
+    background-color: white;
+}
+
+
+// custome styling for aside 
+
+aside{
+    ::-webkit-scrollbar{
+        height: 0;
+        width: 0;
+    }
+}

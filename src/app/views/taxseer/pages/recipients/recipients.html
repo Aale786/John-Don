@@ -1,0 +1,473 @@
+<main class="page">
+  <!-- ======================================================
+         PAGE HEADER
+         ====================================================== -->
+
+  <div class="head">
+    <div>
+      <h1>W-9 management</h1>
+
+      <p>
+        W-9 requests for every filer on this account. Recipients fill the form
+        online; their TIN and address update automatically.
+      </p>
+    </div>
+
+    <div class="flex gap-2 max-[700px]:w-full">
+      <button
+        mat-button
+        class="btn max-[700px]:flex-1 max-[520px]:w-1/2 border border-gray-200"
+        type="button"
+        (click)="exportRecipients()"
+      >
+        Export
+      </button>
+
+      <button
+        mat-button
+        class="btn primary max-[700px]:flex-1 max-[520px]:w-1/2"
+        type="button"
+        [disabled]="waitingCount === 0"
+        (click)="remindAll()"
+      >
+        {{
+          waitingCount
+            ? 'Remind all ' + waitingCount + ' waiting'
+            : 'No one waiting'
+        }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================
+         FILTER TILES
+         ====================================================== -->
+
+  <div
+    class="tiles mb-4"
+    role="group"
+    aria-label="Filter recipients"
+  >
+    <!-- ALL -->
+
+    <button
+      mat-button
+      class="tile border"
+      type="button"
+      [ngClass]="activeTile === 'all' ? 'border-taxseer-navy' : 'border-gray-300'"
+      (click)="setTile('all')"
+    >
+      <span class="v">
+        {{ totalRecipients }}
+      </span>
+
+      <span class="small muted"> recipients across all filers </span>
+    </button>
+
+    <!-- REQUESTED -->
+
+    <button
+      mat-button
+      class="tile warn border"
+      type="button"
+      [ngClass]="activeTile === 'Requested' ? 'border-taxseer-navy' : 'border-gray-300'"
+      (click)="setTile('Requested')"
+    >
+      <span class="v">
+        {{ waitingCount }}
+      </span>
+
+      <span class="small muted"> waiting for the recipient </span>
+    </button>
+
+    <!-- OLD -->
+
+    <button
+      mat-button
+      class="tile border"
+      type="button"
+      [ngClass]="activeTile === 'old' ? 'border-taxseer-navy' : 'border-gray-300'"
+      (click)="setTile('old')"
+    >
+      <span class="v">
+        {{ overdueCount }}
+      </span>
+
+      <span class="small muted"> waiting more than 30 days </span>
+    </button>
+
+    <!-- NOT REQUESTED -->
+
+    <button
+      mat-button
+      class="tile border"
+      type="button"
+      [ngClass]="activeTile === 'Not requested' ? 'border-taxseer-navy' : 'border-gray-300'"
+      (click)="setTile('Not requested')"
+    >
+      <span class="v">
+        {{ notRequestedCount }}
+      </span>
+
+      <span class="small muted"> never requested </span>
+    </button>
+  </div>
+
+  <!-- ======================================================
+         MAIN CARD
+         ====================================================== -->
+
+  <section class="card">
+    <!-- TOOLBAR -->
+
+    <div class="toolbar">
+      <input
+        matInput
+        type="search"
+        class="search"
+        placeholder="Filer or recipient name"
+        aria-label="Search"
+        [value]="searchText"
+        (input)="onSearch($any($event.target).value)"
+      />
+
+      <label class="chk small max-[700px]:w-full">
+        <input
+          type="checkbox"
+          [checked]="onlyOpen"
+          (change)="onlyOpen = $any($event.target).checked"
+        />
+
+        Only filers with requests waiting
+      </label>
+
+      <span class="spacer"></span>
+
+      <button
+        mat-button
+        class="btn sm ghost max-[700px]:flex-1 max-[520px]:w-1/2"
+        type="button"
+        (click)="toggleAll()"
+      >
+        {{ allExpanded ? 'Collapse all' : 'Expand all' }}
+      </button>
+    </div>
+
+    <!-- ==================================================
+             FILER TABLE
+             ================================================== -->
+
+    <div class="tbl-wrap">
+      <table class="tbl min-w-[1000px]">
+        <thead>
+          <tr>
+            <th class="w-11">
+              <span class="sr"> Expand </span>
+            </th>
+
+            <th>Filer</th>
+
+            <th>Received</th>
+
+            <th class="num">Waiting</th>
+
+            <th class="num">Not requested</th>
+
+            <th>Oldest waiting</th>
+
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (group of groups(); track group.filer) {
+            <!-- ==================================
+                             FILER ROW
+                             ================================== -->
+
+            <tr>
+              <td>
+                <button
+                  class="exp"
+                  type="button"
+                  [attr.aria-expanded]="isExpanded(group.filer)"
+                  [attr.aria-label]="
+                    isExpanded(group.filer)
+                      ? 'Collapse ' + group.filer
+                      : 'Expand ' + group.filer
+                  "
+                  (click)="toggleFiler(group.filer)"
+                >
+                  <img
+                    src="/assets/icons/chevron-right-muted.svg"
+                    alt="chevron-right"
+                    class="chevron-right-icon"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </td>
+
+              <td>
+                <button
+                  
+                  type="button"
+                  class="flink cursor-pointer border-0 bg-transparent p-0"
+                  (click)="openFiler(filerId(group.filer))"
+                >
+                  {{ group.filer }}
+                </button>
+
+                <div class="small muted">
+                  {{ group.total }}
+                  recipient{{ group.total === 1 ? '' : 's' }}
+                </div>
+              </td>
+
+              <td>
+                {{ group.submitted }}
+              </td>
+
+              <td class="num">
+                @if (group.requested) {
+                  <mat-chip class="pill p-warn">
+                    {{ group.requested }}
+                  </mat-chip>
+                } @else {
+                  <span class="muted"> 0 </span>
+                }
+              </td>
+
+              <td class="num">
+                @if (group.notRequested) {
+                  <mat-chip class="pill p-neutral">
+                    {{ group.notRequested }}
+                  </mat-chip>
+                } @else {
+                  <span class="muted"> 0 </span>
+                }
+              </td>
+
+              <td>
+                @if (group.oldestRequested) {
+                  <span>
+                    {{ daysAgoForDisplay(group.oldestRequested.sent) }}
+                  </span>
+                  <span class="small muted">
+                    ( {{ formatDate(group.oldestRequested.sent) }} )
+                  </span>
+
+                } @else {
+                  <span class="muted"> — </span>
+                }
+              </td>
+
+              <td class="text-right">
+                @if (group.requested) {
+                  <button
+                    mat-button
+                    class="btn sm max-[700px]:flex-1 max-[520px]:w-1/2 border border-gray-200"
+                    type="button"
+                    (click)="remindFiler(group)"
+                  >
+                    Remind
+                    {{ group.requested }}
+                  </button>
+                } @else if (group.notRequested) {
+                  <button
+                    mat-button
+                    class="btn sm max-[700px]:flex-1 max-[520px]:w-1/2 border border-gray-200"
+                    type="button"
+                    (click)="requestFiler(group)"
+                  >
+                    Request
+                    {{ group.notRequested }}
+                  </button>
+                } @else {
+                  <span class="small muted"> All received </span>
+                }
+              </td>
+            </tr>
+
+            <!-- ==================================
+                             EXPANDED RECIPIENTS
+                             ================================== -->
+
+            @if (isExpanded(group.filer)) {
+              <tr class="more">
+                <td></td>
+
+                <td colspan="6">
+                  <table class="mini">
+                    <thead>
+                      <tr>
+                        <th>Recipient</th>
+
+                        <th>TIN</th>
+
+                        <th>Email</th>
+
+                        <th>Status</th>
+
+                        <th>History</th>
+
+                        <th class="text-right">Action</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      @for (recipient of group.recipients; track recipient.id) {
+                        <tr>
+                          <!-- RECIPIENT -->
+
+                          <td class="pt-2">
+                            <strong>
+                              {{ recipient.name }}
+                            </strong>
+                          </td>
+
+                          <!-- TIN -->
+
+                          <td class="pt-2">
+                            {{ recipient.tin }}
+                          </td>
+
+                          <!-- EMAIL -->
+
+                          <td class="pt-2">
+                            @if (recipient.email) {
+                              {{ recipient.email }}
+                            } @else {
+                              <span class="muted"> No email </span>
+                            }
+                          </td>
+
+                          <!-- STATUS -->
+
+                          <td class="pt-2">
+                            <mat-chip
+                              class="pill"
+                              [class.p-ok]="recipient.status === 'Submitted'"
+                              [class.p-warn]="recipient.status === 'Requested'"
+                              [class.p-neutral]="
+                                recipient.status === 'Not requested'
+                              "
+                            >
+                              {{ recipient.status }}
+                            </mat-chip>
+                          </td>
+
+                          <!-- HISTORY -->
+
+                          <td class="pt-2">
+                            @if (recipient.status === 'Submitted') {
+                              <div>
+                                Requested
+                                {{ formatDate(recipient.sent) }}
+                              </div>
+
+                              <div class="small muted">
+                                Received
+                                {{ formatDate(recipient.got) }}
+                              </div>
+                            } @else if (recipient.status === 'Requested') {
+                              <div>
+                                Requested
+                                {{ formatDate(recipient.sent) }}
+                              </div>
+
+                              <div class="small muted">
+                                @if (recipient.rem) {
+                                  {{ recipient.rem }}
+                                  reminder{{ recipient.rem === 1 ? '' : 's' }}
+                                } @else {
+                                  No reminders yet
+                                }
+                              </div>
+                            } @else {
+                              <span class="muted"> — </span>
+                            }
+                          </td>
+
+                          <!-- ACTION -->
+
+                          <td class="text-right pt-2">
+                            @if (recipient.status === 'Submitted') {
+                              <button
+                                mat-button
+                                class="btn sm max-[700px]:flex-1 max-[520px]:w-1/2 border border-gray-200"
+                                type="button"
+                                (click)="viewW9(recipient)"
+                              >
+                                View W-9
+                              </button>
+                            } @else if (!recipient.email) {
+                              <button
+                                mat-button
+                                class="btn sm max-[700px]:flex-1 max-[520px]:w-1/2 border border-gray-200"
+                                type="button"
+                                (click)="addEmail(recipient)"
+                              >
+                                Add email
+                              </button>
+                            } @else if (recipient.status === 'Requested') {
+                              <button
+                                mat-button
+                                class="btn sm max-[700px]:flex-1 max-[520px]:w-1/2 border border-gray-200"
+                                type="button"
+                                (click)="resendRequest(recipient)"
+                              >
+                                Resend
+                              </button>
+                            } @else {
+                              <button
+                                mat-button
+                                class="btn sm max-[700px]:flex-1 max-[520px]:w-1/2 border border-gray-200"
+                                type="button"
+                                (click)="requestRecipient(recipient)"
+                              >
+                                Request W-9
+                              </button>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ==================================================
+             FOOT NOTE
+             ================================================== -->
+
+    <div class="foot-note border-t border-gray-200">
+      <span>
+        Waiting requests get an automatic reminder every 7 days, up to 3 times.
+      </span>
+
+      <span>
+        Payments to a recipient without a W-9 may require 24% backup
+        withholding.
+      </span>
+    </div>
+  </section>
+</main>
+
+<!-- ========================================================
+     TOAST
+     ======================================================== -->
+
+<div
+  class="toast"
+  [class.show]="toastVisible"
+  role="status"
+  aria-live="polite"
+>
+  {{ toastMessage }}
+</div>

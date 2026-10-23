@@ -1,0 +1,184 @@
+<header class="taxseer-top-nav" [class.taxseer-top-nav--open]="navOpen()">
+
+    <div class="taxseer-top-nav__inner">
+
+        <!-- =====================================================
+             BRAND
+             ===================================================== -->
+
+        <a
+            routerLink="/taxseer/dashboard"
+            class="taxseer-brand"
+            aria-label="Taxseer Dashboard"
+            (click)="closeNav()"
+        >
+            <img
+                src="/images/taxseerLogo.png"
+                alt="Taxseer"
+                class="taxseer-brand__logo"
+            />
+        </a>
+
+
+        <!-- =====================================================
+             PRIMARY NAVIGATION
+             ===================================================== -->
+
+        <nav
+            class="taxseer-navigation"
+            aria-label="Taxseer primary navigation"
+        >
+
+            <a
+                routerLink="/taxseer/dashboard"
+                routerLinkActive="taxseer-navigation__link--active"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="taxseer-navigation__link"
+                (click)="closeNav()"
+            >
+                Dashboard
+            </a>
+
+
+            <a
+                routerLink="/taxseer/filers"
+                routerLinkActive="taxseer-navigation__link--active"
+                class="taxseer-navigation__link"
+                (click)="closeNav()"
+            >
+                Filers
+            </a>
+
+
+            <a
+                routerLink="/taxseer/recipients"
+                routerLinkActive="taxseer-navigation__link--active"
+                class="taxseer-navigation__link"
+                (click)="closeNav()"
+            >
+                Recipients & W-9
+            </a>
+
+
+            <a
+                routerLink="/taxseer/orders"
+                routerLinkActive="taxseer-navigation__link--active"
+                class="taxseer-navigation__link"
+                (click)="closeNav()"
+            >
+                Orders
+            </a>
+        </nav>
+
+
+        <!-- =====================================================
+             FLEX SPACER
+             ===================================================== -->
+
+        <div class="taxseer-top-nav__spacer"></div>
+
+
+        <!-- =====================================================
+             DESKTOP ACTIONS
+             ===================================================== -->
+
+        <div class="taxseer-actions">
+
+            <!-- Balance -->
+
+            <div
+                class="taxseer-balance"
+                aria-label="Wallet balance"
+            >
+
+                <mat-icon class="taxseer-balance__icon">
+                    <img src="/assets/icons/wallet-white.svg" alt="wallet" class="wallet-icon" width="16" height="16" />
+                </mat-icon>
+
+                <span>$100.00</span>
+
+            </div>
+
+
+            <!-- Cart -->
+
+            <button
+                type="button"
+                class="taxseer-cart"
+                aria-label="Open cart"
+            >
+
+                <mat-icon class="taxseer-cart__icon">
+                    <img src="/assets/icons/shopping-cart-slate.svg" alt="shopping-cart" class="shopping-cart-icon" width="16" height="16" />
+                </mat-icon>
+
+                <span>
+                    Cart
+                </span>
+
+                <span
+                    class="taxseer-cart__count"
+                    aria-label="52 forms in cart"
+                >
+                    52
+                </span>
+
+            </button>
+
+
+   
+
+            <!-- Settings -->
+
+            <a
+                routerLink="/taxseer/settings"
+                class="taxseer-theme-button"
+                aria-label="Settings"
+            >
+                <mat-icon>
+                    <img src="/assets/icons/settings-white.svg" alt="settings" class="settings-icon" width="16" height="16" />
+                </mat-icon>
+            </a>
+
+
+            <!-- User -->
+
+            <div class="taxseer-user">
+
+                <div
+                    class="taxseer-user__avatar"
+                    aria-hidden="true"
+                >
+                    M
+                </div>
+
+                <span class="taxseer-user__name">
+                    Mary
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             MOBILE MENU
+             ===================================================== -->
+
+        <button
+            type="button"
+            class="taxseer-mobile-menu"
+            aria-label="Open navigation"
+            [attr.aria-expanded]="navOpen()"
+            (click)="toggleNav()"
+        >
+
+            <mat-icon>
+                <img src="/assets/icons/menu-white.svg" alt="menu" class="menu-icon" width="22" height="22" />
+            </mat-icon>
+
+        </button>
+
+    </div>
+
+</header>

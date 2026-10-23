@@ -1,0 +1,1739 @@
+<!--
+  Angular Material (v22.1.1)
+  Component imports needed:
+  FormsModule, NgClass, MatButtonModule, MatFormFieldModule, MatInputModule,
+  MatSelectModule, MatChipsModule, MatCheckboxModule, MatRadioModule,
+  MatButtonToggleModule, MatTabsModule
+-->
+
+<!-- ================= DASHBOARD ================= -->
+@if (activeView === 'dashboard') {
+<main class="page">
+
+  <!-- Header -->
+  <div class="head mb-(--sp-9)">
+    <div>
+      <h1>Good afternoon, Mary</h1>
+      <p>
+        Tax year 2025 filing season.
+        1099-NEC and W-2 are due in {{ daysToFeb2 }} days.
+      </p>
+    </div>
+  </div>
+
+  <!-- Dashboard Top Section -->
+  <div class="dashboard-grid mt-1 grid grid-cols-1 gap-4 mb-4 lg:grid-cols-dashboard">
+
+    <!-- Continue where you left off -->
+    <section class="card [box-shadow:var(--sh-1)] lg:min-h-89">
+      <div class="card-heading pb-5">
+        <h2 class="text-lg font-semibold text-taxseer-ink">Continue where you left off</h2>
+        <span class="muted small">
+          Work saves as pending automatically
+        </span>
+      </div>
+
+      @for (item of resumeItems; track item.id) {
+      <div
+        class="resume-row flex flex-wrap items-center gap-3.5 border-b border-taxseer-line last:border-b-0 sm:flex-nowrap px-3.5 py-4.5">
+        <div class="resume-content flex-1 min-w-0 max-sm:basis-full">
+          <div>
+            
+            <strong class="font-semibold">{{ item.name }}</strong>
+            <span class="muted">
+              · {{ item.form }} · {{ taxYear }}
+            </span>
+          </div>
+
+          <div class="small muted block mt-1">
+            {{ item.detail }}. {{ item.when }}
+          </div>
+
+          <div class="prog mt-1.5 overflow-hidden rounded-full bg-taxseer-prog"
+            [attr.aria-label]="item.done + ' of ' + item.total + ' complete'">
+            <span class="block h-full rounded-full bg-taxseer-navy transition-all duration-300"
+              [style.width.%]="item.total ? (item.done / item.total * 100) : 0">
+            </span>
+          </div>
+        </div>
+
+        <span class="small muted hidden whitespace-nowrap lg:block">
+          {{ item.done }} of {{ item.total }} ready
+        </span>
+
+        @if ($index === 0) {
+        <button mat-flat-button color="primary" class="btn small-btn primary max-sm:w-full mt-2 sm:mt-0"
+          (click)="resume($index)">
+          Continue
+        </button>
+        } @else {
+        <button mat-stroked-button class="btn small-btn max-sm:w-full mt-2 sm:mt-0" (click)="resume($index)">
+          Continue
+        </button>
+        }
+      </div>
+      }
+    </section>
+
+    <!-- Start a new filing -->
+    <section class="file-panel relative flex flex-col gap-3.5 overflow-hidden rounded-xl bg-taxseer-navy p-5 text-white shadow-sm">
+      <div>
+        <h2 class="text-xl font-semibold text-white">File new forms</h2>
+        <p class="mt-1 text-sm text-taxseer-blue-muted">
+          1099, W-2 and ACA for any filer on your account
+        </p>
+      </div>
+
+      <button mat-button
+        class="choice main mt-1 py-2"
+        (click)="startFiling('manual')">
+        <span class="ci">
+          <img src="/assets/icons/edit-white.svg" alt="edit" width="22" height="22" />
+        </span>
+        <span>
+          <b>Manual entry</b>
+          <span class="d">
+            Pick recipients and type the amounts. Best for a handful of forms.
+          </span>
+        </span>
+        <span class="go">
+          <kbd>N</kbd>
+          <img src="/assets/icons/arrow-right-navy-22.svg" alt="arrow-right" width="18" height="18"
+            class="brightness-200" />
+        </span>
+      </button>
+
+      <button mat-button
+        class="choice alt py-3.5"
+        (click)="startFiling('bulk')">
+        <span class="ci">
+          <img src="/assets/icons/spreadsheet-white.svg" alt="spreadsheet" width="22" height="22" />
+        </span>
+        <span>
+          <b>Bulk import</b>
+          <span class="d">
+            Upload the TaxSeer Excel template or your own file.
+          </span>
+        </span>
+        <span class="go">
+          <kbd>I</kbd>
+          <img src="/assets/icons/arrow-right-mist-22.svg" alt="arrow-right" width="18" height="18" />
+        </span>
+      </button>
+
+      <details class="templates relative z-10 mt-1 text-sm">
+        <summary class="cursor-pointer font-semibold text-taxseer-pale hover:underline">Download Excel
+          templates</summary>
+        <div class="template-grid grid grid-cols-4 gap-2 mt-3">
+          @for (form of allFormOptions; track form.code) {
+          @if (form.code !== '8809') {
+          <button mat-stroked-button
+            class="small-btn text-taxseer-navy-2 border-white/30! flex items-center justify-start gap-1.5 text-xs"
+            (click)="downloadTemplate(form.code)">
+            <img src="/assets/icons/download-blue.svg" alt="download" width="14" height="14" class="brightness-200 text-red-400" />
+            {{ form.code }}
+          </button>
+          }
+          }
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <!-- Dashboard Summary Cards -->
+  <div class="three-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+    <!-- Needs attention -->
+    <section class="card shadow-sm">
+      <div class="card-heading pb-4">
+        <h2 class="text-lg font-semibold text-taxseer-ink">Needs attention</h2>
+      </div>
+
+      <button mat-button
+        class="attention flex h-auto min-h-0 w-full items-start gap-3.5 border-0 border-b border-taxseer-line bg-white text-left transition-colors last:border-0 hover:bg-taxseer-hover"
+        (click)="notify('3 rejected forms need review')">
+        <b class="number danger min-w-8 text-(--fs-stat) leading-tight font-semibold">3</b>
+        <span class="grid min-w-0 gap-1">
+          <strong class="font-semibold text-taxseer-ink">Rejected by IRS / SSA</strong>
+          <small class="text-xs text-taxseer-muted">Maryland Trucking (1), Nextlinx (2)</small>
+        </span>
+      </button>
+
+      <button mat-button
+        class="attention flex h-auto min-h-0 w-full items-start gap-3.5 border-0 border-b border-taxseer-line bg-white text-left transition-colors last:border-0 hover:bg-taxseer-hover"
+        (click)="notify('2 recipients will be rejected: 8-digit TIN, invalid state')">
+        <b class="number danger min-w-8 text-(--fs-stat) leading-tight font-semibold">2</b>
+        <span class="grid min-w-0 gap-1">
+          <strong class="font-semibold text-taxseer-ink">Recipients that will be rejected</strong>
+          <small class="text-xs text-taxseer-muted">8-digit TIN, invalid state</small>
+        </span>
+      </button>
+
+      <button mat-button
+        class="attention flex h-auto min-h-0 w-full items-start gap-3.5 border-0 bg-white text-left transition-colors hover:bg-taxseer-hover"
+        (click)="notify(totalWaitingW9 + ' W-9 requests unanswered')">
+        <b class="number warning min-w-8 leading-tight font-semibold text-taxseer-amber">{{
+          totalWaitingW9 }}</b>
+        <span class="grid min-w-0 gap-1">
+          <strong class="font-semibold text-taxseer-ink">W-9 requests unanswered</strong>
+          <small class="text-xs text-taxseer-muted">Across 4 filers. Oldest sent Nov 4.</small>
+        </span>
+      </button>
+    </section>
+
+    <!-- Deadlines -->
+    <section class="card padded bg-white shadow-sm px-3.5 py-4.5">
+      <h2 class="border-b border-taxseer-line pb-3 text-lg font-semibold text-taxseer-ink">Deadlines</h2>
+
+      <div class="deadline mt-1 flex items-start justify-between gap-2.5 text-sm">
+        <span>
+          <b class="dl-date block text-taxseer-ink text-sm font-bold">Feb 2</b>
+          <span class="text-taxseer-muted">1099-NEC, W-2 and recipient copies</span>
+        </span>
+        <mat-chip class="pill warning-pill">{{ daysToFeb2 }} days</mat-chip>
+      </div>
+
+      <div class="deadline mt-1 flex items-start justify-between gap-2.5 text-sm">
+        <span>
+          <b class="dl-date block text-taxseer-ink text-sm font-bold">Mar 31</b>
+          <span class="text-taxseer-muted">Other 1099s and ACA e-file</span>
+        </span>
+        <mat-chip class="pill neutral-pill">{{ daysToMar31 }} days</mat-chip>
+      </div>
+    </section>
+
+    <!-- Ready to check out -->
+    <section
+      class="card padded flex flex-col justify-between bg-white px-3.5 py-4.5 shadow-sm">
+      <div>
+        <h2 class="border-b border-taxseer-line pb-3 text-lg font-semibold text-taxseer-ink">Ready to check out
+        </h2>
+        <div class="cart-line mt-1 flex flex-wrap items-baseline gap-2">
+          <b class="cart-total font-semibold text-taxseer-ink">{{ cartCount }}</b>
+          <span class="text-sm text-taxseer-muted">forms in cart from 4 filers</span>
+          <p class="small muted mt-1 w-full text-xs text-taxseer-muted">
+            Wallet balance ${{ walletBalance.toFixed(2) }}
+          </p>
+        </div>
+        <button mat-stroked-button class="btn small-btn review-cart w-fit mt-5 border border-gray-200" (click)="notify('Cart opened')">
+          Review cart
+        </button>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- Filers Table -->
+  <section class="card filer-card shadow-sm mt-4">
+    <div class="card-heading filer-heading flex flex-wrap justify-between items-center gap-3 pb-3">
+      <h2 class="text-lg font-semibold text-taxseer-ink">Filers</h2>
+
+      <div class="search-actions flex flex-1 gap-2 justify-end">
+        
+        <input [(ngModel)]="filerSearch" placeholder="Find a filer by name or EIN" aria-label="Find a filer" class="border border-gray-200 px-3 py-1 rounded-md bg-white w-sm">
+        
+
+        <button mat-stroked-button class="btn small-btn flex items-center gap-1.5 whitespace-nowrap border border-gray-200"
+          (click)="openAddFiler()"> 
+          <img src="/assets/icons/plus-ink.svg" alt="plus" width="16" height="16" />
+          Add filer
+        </button>
+      </div>
+    </div>
+
+    <div class="table-scroll mt-2">
+      <table class="tbl">
+        <thead>
+          <tr class="border-b border-taxseer-line text-xs font-semibold text-taxseer-muted">
+            <th>Name / company</th>
+            <th>EIN</th>
+            <th>Forms used</th>
+            <th class="text-right">Pending</th>
+            <th class="text-right">Filed 2025</th>
+            <th>W-9s received</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (f of filteredFilers; track f.id) {
+          <tr class="transition-colors hover:bg-taxseer-hover">
+            <td>
+              <button type="button"
+                class="fname p-0! font-semibold text-taxseer-navy-2 hover:underline" (click)="goFiler(f.id)">
+                {{ f.name }}
+              </button>
+              <small class="subline mt-0.5 block text-xs text-taxseer-muted">
+                {{ f.city }}, {{ f.state }}
+              </small>
+              @if (f.warn) {
+              <div
+                class="note mt-1">
+                {{ f.warn }}</div>
+              }
+            </td>
+            <td class="font-mono text-xs">{{ formatEin(f.ein) }}</td>
+            <td class="text-xs">
+              @if (f.forms.length) {
+              {{ f.forms.join(', ') }}
+              } @else {
+              <span class="muted text-taxseer-muted">None yet</span>
+              }
+            </td>
+            <td class="text-right font-medium">{{ f.pending || '–' }}</td>
+            <td class="text-right font-medium">{{ f.filed || '–' }}</td>
+            <td>
+              @if (f.w9Total) {
+              <button mat-button class="btn link p-0! mr-2 text-xs text-taxseer-navy-2 hover:underline"
+                (click)="goFilerRecipients(f.id)">
+                {{ f.w9Received }} of {{ f.w9Total }}
+              </button>
+              @if (f.w9Waiting) {
+              <mat-chip class="pill warning-pill">{{ f.w9Waiting }} waiting</mat-chip>
+              } @else {
+              <mat-chip class="pill success-pill">All in</mat-chip>
+              }
+              } @else {
+              <span class="muted text-xs text-taxseer-muted">No requests</span>
+              }
+            </td>
+            <td class="text-right whitespace-nowrap">
+              <button mat-button class="btn small-btn ghost mr-1!" [attr.aria-label]="'Edit ' + f.name"
+                (click)="openEditFiler(f.id)">
+                <img src="/assets/icons/edit-ink.svg" alt="edit" width="16" height="16" />
+                Edit
+              </button>
+              <button mat-stroked-button class="btn small-btn border border-gray-200" (click)="newFilingFor(f.id)">
+                <img src="/assets/icons/plus-ink.svg" alt="plus" width="16" height="16" />
+                New filing
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="7" class="empty text-center text-taxseer-muted">
+              No filer matches.
+              <button mat-stroked-button class="btn small-btn ml-2" (click)="openAddFiler()">
+                Add filer
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+} @else if (activeView === 'wizard') {
+
+<!-- ================= FILING WIZARD ================= -->
+<main class="wizard">
+
+  <!-- Wizard Header -->
+  <div class="wizard-header">
+    <div class="wizard-inner">
+
+      <div class="wizard-title">
+        <div>
+          <button mat-button class="back-link" (click)="goDashboard()">
+            <img src="/assets/icons/arrow-left-blue.svg" alt="arrow-left" width="15" height="15" />
+            Dashboard
+          </button>
+          <h1>
+            New filing
+            <mat-chip class="mode-pill ">
+              {{ mode === 'manual' ? 'Manual entry' : 'Bulk import' }}
+            </mat-chip>
+          </h1>
+        </div>
+
+        <div class="title-actions">
+          @if (step >= 4) {
+          <span class="saved">
+            <img src="/assets/icons/check-green-25.svg" alt="check" width="14" height="14" />
+            Saved as pending
+          </span>
+          }
+          <button mat-stroked-button class="btn small-btn border border-gray-200 " (click)="saveAndExit()">
+            Save and exit
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Steps -->
+      <nav mat-tab-nav-bar class="steps" [tabPanel]="stepPanel" mat-stretch-tabs="false"
+        aria-label="Filing steps">
+        @for (name of stepNames; track name; let i = $index) {
+        <a mat-tab-link class="step"
+          [class.current]="step === i + 1" [class.completed]="step > i + 1" [active]="step === i + 1"
+          [disabled]="step === i + 1 || !canReach(i + 1)"
+          [attr.tabindex]="(step === i + 1 || !canReach(i + 1)) ? -1 : 0"
+          [attr.aria-current]="step === i + 1 ? 'step' : null"
+          (click)="canReach(i + 1) && step !== i + 1 ? goStep(i + 1) : null"
+          (keydown.enter)="canReach(i + 1) && step !== i + 1 ? goStep(i + 1) : null"
+          (keydown.space)="$event.preventDefault(); canReach(i + 1) && step !== i + 1 ? goStep(i + 1) : null">
+
+          <!-- Step Indicator Dot -->
+          <span class="step-dot">
+            {{ step > i + 1 ? '✓' : i + 1 }}
+          </span>
+
+          <!-- Step Label & Summary -->
+          <span class="step-body">
+            <b class="step-label">{{ name }}</b>
+            <small class="step-summary">{{ stepSummary(i + 1) }}</small>
+          </span>
+        </a>
+        }
+      </nav>
+    </div>
+  </div>
+
+  <mat-tab-nav-panel #stepPanel class="wizard-body">
+
+    <!-- STEP 1: SELECT FILER -->
+    @if (step === 1) {
+    <div class="sec-h">
+      <div>
+        <h2>Who is filing?</h2>
+        <p class="muted small mt-1">
+          The payer or employer that appears on the form.
+        </p>
+      </div>
+
+      <div class="head-actions">
+          <input aria-label="Find filer" [(ngModel)]="filerSearch" (keyup.enter)="takeTopFilerMatch()" class="border border-gray-200 px-3 py-2 rounded-md bg-white w-sm"
+            placeholder="Type a name or EIN">
+
+        <button mat-stroked-button type="button" class="btn" (click)="openAddFiler()">
+          <img src="/assets/icons/plus-ink.svg" alt="plus" width="16" height="16" />
+          Add filer
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="card table-scroll">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th class="w-10"></th>
+            <th>Name / company</th>
+            <th>EIN</th>
+            <th>Address</th>
+            <th>Forms used before</th>
+            <th class="w-20"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (group of filerGroups; track group.label) {
+          <tr class="group-label">
+            <td colspan="6">{{ group.label }}</td>
+          </tr>
+
+          @for (f of group.filers; track f.id) {
+          <tr class="radio-row cursor-pointer hover:bg-(--hover) transition-colors"
+            [class.sel]="selectedFilerId === f.id" (click)="chooseFiler(f.id); goStep(2)"
+            (keydown.enter)="chooseFiler(f.id); goStep(2)" tabindex="0">
+            <td (click)="$event.stopPropagation()">
+              <mat-radio-button name="wizardFiler" [value]="f.id" [attr.aria-label]="f.name"
+                [checked]="selectedFilerId === f.id" (click)="chooseFiler(f.id)">
+              </mat-radio-button>
+            </td>
+            <td>
+              <strong>{{ f.name }}</strong>
+              @if (f.warn) {
+              <div
+                class="note mt-1">
+                {{ f.warn }}</div>
+              }
+            </td>
+            <td>{{ formatEin(f.ein) }}</td>
+            <td class="small">
+              {{ f.address }}, {{ f.city }}, {{ f.state }} {{ f.zip }}
+            </td>
+            <td class="small">
+              {{ f.forms.join(', ') || 'None' }}
+            </td>
+            <td class="text-right">
+              <button mat-button type="button" class="btn small-btn ghost" [attr.aria-label]="'Edit ' + f.name"
+                (click)="$event.stopPropagation(); openEditFiler(f.id)">
+                <img src="/assets/icons/edit-ink.svg" alt="edit" width="16" height="16" />
+                Edit
+              </button>
+            </td>
+          </tr>
+          }
+          }
+
+          @if (!filteredFilers.length) {
+          <tr>
+            <td colspan="6" class="empty">
+              No filer matches “{{ filerSearch }}”.
+              <button mat-stroked-button type="button" class="btn small-btn ml-2" (click)="openAddFiler()">
+                Add it as a new filer
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- STEP 2: SELECT FORM -->
+    @if (step === 2) {
+    <div class="year-row">
+      <h2 class="year-title">Tax year</h2>
+      <mat-button-toggle-group class="seg" aria-label="Tax year" [value]="taxYear" (change)="chooseYear($event.value)">
+        @for (year of taxYears; track year) {
+        <mat-button-toggle [value]="year">{{ year }}</mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+      <span class="muted small">{{ yearNote }}</span>
+    </div>
+
+    <div class="forms-wrap">
+      <div class="forms-main">
+        <div class="sec-h">
+          <h2>Form</h2>
+          <!-- <mat-form-field class="search max-sm:w-full" appearance="outline" subscriptSizing="dynamic"> -->
+            <input aria-label="Find form" [(ngModel)]="formSearch" class="border border-gray-200 rounded-md px-3 py-1.5 bg-white w-sm"
+              placeholder="Type a form number or what was paid">
+          <!-- </mat-form-field> -->
+        </div>
+
+        @if (usedFormOptions.length) {
+        <div class="form-group">
+          <h3>
+            Forms {{ currentFiler?.name }} filed before
+          </h3>
+          <div class="form-grid">
+            @for (form of usedFormOptions; track form.code) {
+            <button mat-stroked-button type="button"
+              class="form-option bg-white"
+              
+ [attr.aria-pressed]="selectedForm === form.code"
+              (click)="chooseForm(form.code)">
+              <span class="tagline">
+                <strong>Form {{ form.code }}</strong>
+                <mat-chip class="pill p-info">Used last year</mat-chip>
+              </span>
+              <span  class="form-label">{{ form.label }}</span>
+            </button>
+            }
+          </div>
+        </div>
+        }
+
+        @for (group of visibleFormGroups; track group.group) {
+        <div class="form-group">
+          <h3>{{ group.group }}</h3>
+          <div class="form-grid">
+            @for (form of group.forms; track form.code) {
+
+    
+<button
+  mat-stroked-button
+  type="button"
+  class="form-option"
+  [attr.aria-pressed]="selectedForm === form.code"
+  (click)="chooseForm(form.code)">
+
+  <span class="tagline">
+    <strong>Form {{ form.code }}</strong>
+  </span>
+
+  <span>{{ form.label }}</span>
+</button>
+
+            }
+          </div>
+        </div>
+        }
+
+        @if (!usedFormOptions.length && !visibleFormGroups.length) {
+        <div class="empty">
+          No form matches “{{ formSearch }}”.
+        </div>
+        }
+      </div>
+
+      <!-- Filer Details Aside -->
+      <aside class="form-aside">
+        <div class="card">
+          <h3>Filer</h3>
+
+          <div class="kv-list">
+            <div class="kv flex justify-between">
+              <span>Name</span>
+              <b>{{ currentFiler?.name }}</b>
+            </div>
+            <div class="kv flex justify-between">
+              <span>EIN</span>
+              <span>{{ formatEin(currentFiler?.ein ?? '') }}</span>
+            </div>
+            <div class="kv flex justify-between items-start">
+              <span>Address</span>
+              <span class="text-right">
+                {{ currentFiler?.address }}<br>
+                {{ currentFiler?.city }}, {{ currentFiler?.state }} {{ currentFiler?.zip }}
+              </span>
+            </div>
+          </div>
+
+          <button mat-button type="button" class="btn link w-full mt-3"
+            (click)="changeFiler()">
+            Change filer
+          </button>
+        </div>
+
+        <div class="card">
+          @if (selectedFormInfo) {
+          <h3>
+            Form {{ selectedForm }} · {{ taxYear }}
+          </h3>
+
+          <div class="kv-list">
+            <div class="kv flex justify-between">
+              <span>E-file due</span>
+              <b>{{ eFileDue }}</b>
+            </div>
+
+            @if (selectedForm === '1099-NEC') {
+            <div class="kv flex justify-between">
+              <span>Reporting threshold</span>
+              <span>$600 for 2025</span>
+            </div>
+            <div class="kv flex justify-between">
+              <span>Recipient copies due</span>
+              <span>Feb 2, 2026</span>
+            </div>
+            <p class="muted small mt-2">
+              No Form 1096 is needed when you e-file.
+            </p>
+            }
+
+            @if (selectedForm.startsWith('1095')) {
+            <p class="muted small mt-2">
+              The {{ selectedForm.replace('1095', '1094') }} transmittal is created for you and can be edited before
+              e-filing.
+            </p>
+            }
+          </div>
+
+          <button mat-button type="button" class="btn link w-full mt-3"
+            (click)="notify('IRS instructions opened')">
+            IRS instructions for this form
+          </button>
+          } @else {
+          <h3>Pick a form</h3>
+          <p class="muted small">
+            Due dates and thresholds for the selected tax year show here.
+          </p>
+          }
+        </div>
+      </aside>
+    </div>
+    }
+
+    <!-- STEP 3: MANUAL RECIPIENT ENTRY -->
+    @if (step === 3 && mode === 'manual') {
+    @if (!necFlow) {
+    <div
+      class="card empty text-center">
+      This prototype details the 1099-NEC flow. {{ selectedForm }} follows the same recipient and entry pattern with its
+      own boxes.
+      <div class="mt-4">
+        <button mat-stroked-button type="button" class="btn small-btn" (click)="step = 2">
+          Choose 1099-NEC instead
+        </button>
+      </div>
+    </div>
+    } @else {
+    <div class="sec-h">
+      <div>
+        <h2>Who gets a {{ selectedForm }}?</h2>
+        <p class="muted small mt-1">
+          Recipients saved for {{ currentFiler?.name }}. Select one or many; you'll enter amounts for all of them on one
+          screen.
+        </p>
+      </div>
+
+      <div class="head-actions">
+        <!-- <mat-form-field class="search max-sm:flex-1 max-sm:w-full" appearance="outline" subscriptSizing="dynamic"> -->
+          <input aria-label="Find recipient" [(ngModel)]="recipientSearch" placeholder="Name or last 4 of TIN" class="border border-gray-200 bg-white px-3 py-1.5 rounded-md w-sm">
+        <!-- </mat-form-field> -->
+
+        <button mat-button type="button" class="btn link" (click)="toBulkEntry()">
+          Many recipients? Import from Excel
+        </button>
+
+        <button mat-flat-button color="primary" type="button" class="btn primary"
+          (click)="openAddRecipient()">
+          <img src="/assets/icons/plus-white.svg" alt="plus" width="16" height="16" />
+          Add recipient
+        </button>
+      </div>
+    </div>
+
+    <!-- Action Row -->
+    <div class="toolbar-row">
+      <mat-button-toggle-group class="seg" aria-label="Show" [value]="recipientFilter"
+        (change)="recipientFilter = $event.value">
+        @for (filter of recipientFilters; track filter[0]) {
+        <mat-button-toggle [value]="filter[0]">{{ filter[1] }}</mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+
+      <div class="flex items-center gap-2">
+        <button mat-button type="button" class="btn small-btn ghost" (click)="sendW9Requests()">
+          Send W-9 requests
+        </button>
+        <button mat-button type="button" class="btn small-btn ghost" (click)="notify('Recipients exported')">
+          Export
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="card table-scroll">
+      <table class="rec-table">
+        <thead>
+          <tr>
+            <th class="w-10">
+              <mat-checkbox class="cbx" id="rAll" aria-label="Select all shown" [checked]="allVisibleSelected"
+                (change)="toggleAllRecipients()"></mat-checkbox>
+            </th>
+            <th>Recipient</th>
+            <th>TIN</th>
+            <th>Address</th>
+            <th>W-9</th>
+            <th>{{ selectedForm }} {{ taxYear }}</th>
+            <th class="w-20"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (r of visibleRecipients; track r.id) {
+          <tr class="radio-row cursor-pointer hover:bg-(--hover) transition-colors"
+            [class.sel]="r.selected" (click)="toggleRecipient(r)" (keydown.enter)="toggleRecipient(r)"
+            tabindex="0">
+            <td (click)="$event.stopPropagation()">
+              <mat-checkbox class="cbx" [attr.aria-label]="'Select ' + r.name" [checked]="r.selected"
+                (click)="toggleRecipient(r)"></mat-checkbox>
+            </td>
+            <td>
+              <span class="name">{{ r.name }}</span>
+              <div class="small muted mt-0.5">
+                {{ r.type === 'EIN' ? 'Business' : 'Individual' }}
+                @if (r.email && r.econsent) { · e-delivery }
+              </div>
+            </td>
+            <td>
+              <span>{{ maskTin(r) }}</span>
+              <div class="small muted">{{ r.type }}</div>
+            </td>
+            <td class="small">
+              {{ r.address }}<br>
+              {{ r.city }}{{ r.city ? ', ' : '' }}{{ r.state }} {{ r.zip }}
+              @if (recipientIssues(r).length) {
+              <div class="issue text-(--red) mt-1">{{ recipientIssues(r).join(' · ') }}
+              </div>
+              }
+            </td>
+            <td>
+              <mat-chip class="pill" [ngClass]="w9Class(r)">{{ r.w9 }}</mat-chip>
+            </td>
+            <td>
+              @if (r.pendingForm) {
+              <mat-chip class="pill p-info">Pending form exists</mat-chip>
+              <div class="small muted mt-0.5">Selecting it opens that form</div>
+              } @else {
+              <span class="muted small">None yet</span>
+              }
+            </td>
+            <td class="text-right">
+              @if (recipientIssues(r).length) {
+              <button mat-button type="button" class="btn small-btn text-(--red)"
+                (click)="$event.stopPropagation(); openEditRecipient(r.id)">
+                Fix
+              </button>
+              } @else {
+              <button mat-button type="button" class="btn small-btn ghost"
+                (click)="$event.stopPropagation(); openEditRecipient(r.id)">
+                Edit
+              </button>
+              }
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="7" class="empty">
+              {{ filerHasRecipients ? 'No recipients match.' : 'No recipients for this filer yet.' }}
+              <button mat-flat-button color="primary" type="button" class="btn small-btn primary ml-2"
+                (click)="openAddRecipient()">
+                Add recipient
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+    }
+
+    <!-- STEP 3: BULK IMPORT -->
+    @if (step === 3 && mode === 'bulk') {
+    <div class="sec-h">
+      <div>
+        <h2>Upload {{ selectedForm }} data for {{ currentFiler?.name }}</h2>
+        <p class="muted small mt-1">
+          Use the TaxSeer template for this form, or your own Excel or CSV file. Columns are matched for you.
+        </p>
+      </div>
+      <button mat-button class="btn link" (click)="toManualEntry()">
+        Only a few recipients? Enter them manually
+      </button>
+    </div>
+
+    <div class="upload-grid">
+      <div>
+        <!-- Drop Zone -->
+        <label
+          class="drop-zone">
+          <img src="/assets/icons/upload-blue-18.svg" alt="upload" class="w-9 h-9 object-contain" width="34"
+            height="34" />
+          <strong>Drop your file here or browse</strong>
+          <span class="muted small">.xlsx, .xls or .csv. One row per recipient.</span>
+          <input type="file" accept=".xlsx,.xls,.csv" class="mt-2 max-w-57.5"
+            (change)="onFileSelected($event)">
+        </label>
+
+        <div class="sample-file mt-3">
+          <button mat-button class="btn ghost small-btn" (click)="loadDemoFile()">
+            Use a sample file (demo)
+          </button>
+        </div>
+
+        @if (selectedFileName) {
+        <div class="card mt-3.5">
+          <div class="card-heading flex justify-between items-center">
+            <div>
+              <strong>{{ selectedFileName }}</strong>
+              <p class="muted small mt-0.5">
+                Sheet “{{ selectedForm }}”, {{ uploadedRows }} rows after the header
+              </p>
+            </div>
+            <button mat-stroked-button type="button" class="btn small-btn" (click)="replaceFileInput.click()">
+              Replace file
+            </button>
+            <input #replaceFileInput type="file" accept=".xlsx,.xls,.csv" class="hidden"
+              (change)="onFileSelected($event)">
+          </div>
+
+          <div class="table-scroll mt-3">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Column in your file</th>
+                  <th>TaxSeer field</th>
+                  <th class="w-24"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (column of mappedColumns; track column[0]) {
+                <tr>
+                  <td>{{ column[0] }}</td>
+                  <td>
+                    <mat-form-field class="w-65 max-sm:w-full" appearance="outline" subscriptSizing="dynamic">
+                      <mat-select [value]="column[0]" [attr.aria-label]="'Field for ' + column[0]">
+                        <mat-option [value]="column[0]">{{ column[0] }}</mat-option>
+                        <mat-option value="Don't import">Don't import</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </td>
+                  <td>
+                    <mat-chip class="pill p-ok">Matched</mat-chip>
+                  </td>
+                </tr>
+                }
+                <tr>
+                  <td>Internal notes</td>
+                  <td>
+                    <mat-form-field class="w-65 max-sm:w-full" appearance="outline" subscriptSizing="dynamic">
+                      <mat-select value="Don't import" aria-label="Field for Internal notes">
+                        <mat-option value="Don't import">Don't import</mat-option>
+                        <mat-option value="Account Number">Account Number</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </td>
+                  <td>
+                    <mat-chip class="pill p-neutral">Ignored</mat-chip>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="muted small mt-3">
+            Columns left out of the file are treated as blank. Mapping is saved for {{ currentFiler?.name }}, so the
+            next file matches automatically.
+          </p>
+        </div>
+        }
+      </div>
+
+      <aside class="card template-card">
+        <h3>TaxSeer template</h3>
+        <p class="muted small mt-1">
+          Form {{ selectedForm }}, tax year {{ taxYear }}
+        </p>
+
+        <button mat-flat-button color="primary" type="button"
+          class="btn primary w-full mt-3"
+          (click)="downloadTemplate(selectedForm)">
+          <img src="/assets/icons/download-white.svg" alt="download" width="16" height="16" />
+          Download {{ selectedForm }} template
+        </button>
+
+        @if (necFlow) {
+        <div class="columns mt-3.5">
+          <b>Columns <span
+              class="muted font-normal">(required in bold)</span></b>
+          <ul>
+            @for (column of templateColumns; track column[0]) {
+            <li [class.font-semibold]="column[1]">
+              {{ column[0] }}
+            </li>
+            }
+          </ul>
+        </div>
+        <p class="muted small mt-3">
+          Give first and last name for individuals or business name for an EIN. TINs work with or without dashes.
+          Amounts can include $ and commas.
+        </p>
+        }
+      </aside>
+    </div>
+    }
+
+    <!-- STEP 4: MANUAL FORM DETAILS -->
+    @if (step === 4 && mode === 'manual') {
+    <taxseer-nec-amounts [rows]="amountRows" [payerName]="currentFiler?.name ?? ''"
+      [payerTin]="formatEin(currentFiler?.ein ?? '')" [payerAddress]="filerAddressLine()"
+      [payerState]="currentFiler?.state ?? 'MD'" [payerStateNumber]="currentFiler?.stateNo ?? ''"
+      (rowsChange)="onAmountRowsChange($event)" (fixRecipient)="fixRecipientRow($event)" (preview)="previewAmounts()">
+    </taxseer-nec-amounts>
+    }
+
+    <!-- STEP 4: BULK CHECK DATA -->
+    @if (step === 4 && mode === 'bulk') {
+    <div class="sec-h">
+      <div>
+        <h2>Check {{ selectedFileName }}</h2>
+        <p class="muted small mt-1">
+          Row numbers match your spreadsheet. Fix a value here, or fix the file and upload it again.
+        </p>
+      </div>
+
+      <div class="row-actions flex flex-wrap gap-2">
+        <button mat-stroked-button class="btn small-btn" (click)="notify('Error report downloaded (demo action).')">
+          Download error report
+        </button>
+        <button mat-stroked-button class="btn small-btn" (click)="step = 3">
+          Upload corrected file
+        </button>
+        @if (bulkErrors) {
+        <button mat-stroked-button class="btn small-btn" (click)="skipBulkErrors()">
+          Skip {{ bulkErrors }} row{{ bulkErrors > 1 ? 's' : '' }} with errors
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Filter Tiles -->
+    <div class="tiles" role="group" aria-label="Filter rows">
+      <button mat-button
+        class="tile transition-all"
+        [attr.aria-pressed]="bulkFilter === 'all'"
+        (click)="useBulkFilter('all')">
+        <span class="v">{{ bulkToProcess }}</span>
+        <span class="muted small">rows to file{{ bulkSkipped ? ', ' + bulkSkipped +
+          ' skipped' : '' }}</span>
+      </button>
+
+      <button mat-button
+        class="tile transition-all"
+        [attr.aria-pressed]="bulkFilter === 'err'"
+        (click)="useBulkFilter('err')">
+        <span class="v">{{ bulkErrors }}</span>
+        <span class="muted small">errors to fix</span>
+      </button>
+
+      <button mat-button
+        class="tile warn transition-all"
+        [attr.aria-pressed]="bulkFilter === 'note'"
+        (click)="useBulkFilter('note')">
+        <span class="v">{{ bulkNotes }}</span>
+        <span class="muted small">notes to check</span>
+      </button>
+
+      <button mat-button
+        class="tile transition-all"
+        [attr.aria-pressed]="bulkFilter === 'new'"
+        (click)="useBulkFilter('new')">
+        <span class="v">{{ bulkNew }}</span>
+        <span class="muted small">new recipients, {{ bulkMatched }} matched</span>
+      </button>
+    </div>
+
+    @if (bulkSkipped) {
+    <div class="skipped-row mb-3">
+      <button mat-button class="btn link" (click)="useBulkFilter('skip')">
+        Show {{ bulkSkipped }} skipped row{{ bulkSkipped > 1 ? 's' : '' }}
+      </button>
+    </div>
+    }
+
+    <div
+      class="card table-scroll">
+      <table class="check-table">
+        <thead>
+          <tr>
+            <th class="w-16">Row</th>
+            <th>Recipient</th>
+            <th>TIN</th>
+            <th>State</th>
+            <th class="text-right">Box 1</th>
+            <th class="text-right">Box 4</th>
+            <th>Result</th>
+            <th class="text-right w-24"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (row of filteredBulkRows; track row.line) {
+          <tr class="hover:bg-(--hover) transition-colors" [class.skipped]="row.skip">
+            <td>{{ row.line }}</td>
+            <td>
+              <strong>{{ row.name }}</strong>
+              <div class="small muted mt-0.5">
+                {{ row.address }}, {{ row.city }}
+              </div>
+              @if (!row.skip && row.error) {
+              <div class="issue text-(--red) mt-1">{{ row.error }}</div>
+              }
+              @if (!row.skip && !row.error && row.note) {
+              <div class="note text-(--amber) mt-1">{{ row.note }}</div>
+              }
+            </td>
+            <td>
+              @if (bulkBad(row, 'tin')) {
+              <mat-form-field class="cell-fix" appearance="outline" subscriptSizing="dynamic">
+                <input matInput [ngModel]="row.tin" (ngModelChange)="updateBulkValue(row, 'tin', $event)"
+                  inputmode="numeric" [attr.aria-label]="'Fix TIN in row ' + row.line">
+              </mat-form-field>
+              } @else {
+              <span>{{ maskBulkTin(row) }}</span>
+              }
+            </td>
+            <td>
+              @if (bulkBad(row, 'state')) {
+              <mat-form-field class="cell-fix" appearance="outline" subscriptSizing="dynamic">
+                <mat-select [ngModel]="row.state" (ngModelChange)="updateBulkValue(row, 'state', $event)"
+                  [attr.aria-label]="'Fix state in row ' + row.line">
+                  <mat-option value="">Choose</mat-option>
+                  @for (state of stateOptions; track state[0]) {
+                  <mat-option [value]="state[0]">{{ state[0] }} · {{ state[1] }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              } @else {
+              <span>{{ row.state }}</span>
+              }
+            </td>
+            <td class="text-right">
+              @if (bulkBad(row, 'box1')) {
+              <mat-form-field class="cell-fix text-right" appearance="outline" subscriptSizing="dynamic">
+                <input matInput class="text-right" [ngModel]="row.box1"
+                  (ngModelChange)="updateBulkValue(row, 'box1', $event)" inputmode="decimal"
+                  [attr.aria-label]="'Fix Box 1 in row ' + row.line">
+              </mat-form-field>
+              } @else {
+              <span>${{ row.box1 }}</span>
+              }
+            </td>
+            <td class="text-right">
+              @if (bulkBad(row, 'box4')) {
+              <mat-form-field class="cell-fix text-right" appearance="outline" subscriptSizing="dynamic">
+                <input matInput class="text-right" [ngModel]="row.box4"
+                  (ngModelChange)="updateBulkValue(row, 'box4', $event)" inputmode="decimal"
+                  [attr.aria-label]="'Fix Box 4 in row ' + row.line">
+              </mat-form-field>
+              } @else {
+              <span>{{ row.box4 ? '$' + row.box4 : '–' }}</span>
+              }
+            </td>
+            <td>
+              @if (row.skip) {
+              <mat-chip class="pill neutral-pill">Skipped</mat-chip>
+              } @else if (row.error) {
+              <mat-chip class="pill p-err">Fix</mat-chip>
+              } @else if (row.note) {
+              <mat-chip class="pill warning-pill">Check</mat-chip>
+              } @else {
+              <mat-chip class="pill success-pill">Ready</mat-chip>
+              }
+              <span class="muted small block mt-0.5">
+                {{ row.isNew ? 'New' : 'Matched' }}
+              </span>
+            </td>
+            <td class="text-right whitespace-nowrap">
+              <button mat-stroked-button class="btn small-btn" (click)="toggleBulkSkip(row)">
+                {{ row.skip ? 'Include' : 'Skip' }}
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="8" class="empty">
+              Nothing here.
+              <button mat-stroked-button class="btn small-btn ml-2" (click)="useBulkFilter('all')">
+                Show all rows
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- STEP 5: REVIEW -->
+    @if (step === 5) {
+    <div class="sec-h">
+      <div>
+        <h2>Review before adding to cart</h2>
+        <p class="muted small mt-1">
+          {{ currentFiler?.name }}, EIN {{ formatEin(currentFiler?.ein || '') }}.
+          {{ selectedForm }}, tax year {{ taxYear }}.
+          @if (mode === 'bulk' && selectedFileName) { From {{ selectedFileName }}. }
+        </p>
+      </div>
+
+      <button mat-button class="btn ghost small-btn" (click)="notify('Downloading draft PDFs')">
+        Download draft PDFs
+      </button>
+    </div>
+
+    <!-- Stat Tiles -->
+    <div class="review-top">
+      <div class="card stat">
+        <span class="muted small block">Forms</span>
+        <div class="v">{{ formCount() }}</div>
+      </div>
+
+      <div class="card stat">
+        <span class="muted small block">Total Box 1</span>
+        <div class="v">
+          ${{ mode === 'bulk' ? money(bulkBox1) : money(box1Total()) }}
+        </div>
+      </div>
+
+      <div class="card stat">
+        <span class="muted small block">Total federal withheld</span>
+        <div class="v">
+          ${{ mode === 'bulk' ? money(bulkBox4) : money(box4Total()) }}
+        </div>
+      </div>
+
+      <div class="card stat">
+        <span class="muted small block">
+          {{ mode === 'bulk' ? 'Recipients' : 'State copies' }}
+        </span>
+        <div class="v">
+          {{ mode === 'bulk' ? bulkNew + ' new, ' + (bulkToProcess - bulkNew) + ' updated' : stateCopies }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Review Table -->
+    @if (mode === 'manual') {
+    <div
+      class="card table-scroll">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Recipient</th>
+            <th>TIN</th>
+            <th class="text-right">Box 1</th>
+            <th class="text-right">Box 4</th>
+            <th>Box 6</th>
+            <th>Recipient copy</th>
+            <th>Notes</th>
+            <th class="text-right w-20"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (row of amountRowsToUse; track row.id) {
+          <tr class="hover:bg-(--hover) transition-colors">
+            <td>
+              <strong>{{ row.name }}</strong>
+            </td>
+            <td>{{ row.tin }}</td>
+            <td class="text-right">${{ money(row.box1) }}</td>
+            <td class="text-right">{{ row.box4 ? '$' + money(row.box4) : '–' }}</td>
+            <td>{{ row.state ? row.state + ' ' + (row.payerStateNumber || '') : '–' }}</td>
+            <td>
+              <mat-form-field class="w-42.5" appearance="outline" subscriptSizing="dynamic">
+                <mat-select [ngModel]="copyFor(row)" (ngModelChange)="setCopy(row.id, $event)"
+                  [attr.aria-label]="'Copy delivery for ' + row.name">
+                  <mat-option value="email" [disabled]="!canEmailRow(row)">Email{{ canEmailRow(row) ? '' : ' (no
+                    consent)' }}</mat-option>
+                  <mat-option value="mail">Print and mail</mat-option>
+                  <mat-option value="self">I'll deliver it</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </td>
+            <td>
+              @if (amountRowNotes(row).length) {
+              <span class="note text-(--amber)">{{ amountRowNotes(row).join(' ') }}</span>
+              } @else {
+              <mat-chip class="pill success-pill">Ready</mat-chip>
+              }
+            </td>
+            <td class="text-right">
+              <button mat-stroked-button class="btn small-btn" (click)="editAmountRow(row)">Edit</button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- Bulk Review Table -->
+    @if (mode === 'bulk') {
+    <div
+      class="card table-scroll">
+      <div class="delivery-bar">
+        <label for="bulkDelivery" >Recipient copies</label>
+        <mat-form-field class="w-[320px] max-sm:w-full" appearance="outline" subscriptSizing="dynamic">
+          <mat-select id="bulkDelivery" aria-label="Recipient copies" [(ngModel)]="bulkDelivery"
+            (ngModelChange)="notify(bulkDeliveryNote)">
+            <mat-option value="auto">Email where consented, otherwise print and mail</mat-option>
+            <mat-option value="mail">Print and mail all</mat-option>
+            <mat-option value="self">I'll deliver them</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <span class="muted small">{{ bulkDeliveryNote }}</span>
+      </div>
+
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th class="w-16">Row</th>
+            <th>Recipient</th>
+            <th>TIN</th>
+            <th class="text-right">Box 1</th>
+            <th class="text-right">Box 4</th>
+            <th>Copy</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of reviewBulkRows(); track row.line) {
+          <tr class="hover:bg-(--hover) transition-colors">
+            <td>{{ row.line }}</td>
+            <td><strong>{{ row.name }}</strong></td>
+            <td>{{ maskBulkTin(row) }}</td>
+            <td class="text-right">${{ row.box1 }}</td>
+            <td class="text-right">{{ row.box4 ? '$' + row.box4 : '–' }}</td>
+            <td>{{ bulkCopyFor(row) }}</td>
+            <td>
+              @if (row.note) {
+              <mat-chip class="pill warning-pill">{{ row.note }}</mat-chip>
+              } @else {
+              <mat-chip class="pill success-pill">Ready</mat-chip>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (bulkToProcess > reviewBulkRows().length) {
+      <p class="muted small mt-3 p-2.5 border-t border-gray-200">
+        Showing {{ reviewBulkRows().length }} of {{ bulkToProcess }}. Every form can be opened and edited later under
+        Pending forms.
+      </p>
+      }
+    </div>
+    }
+
+    @if (bulkSkipped && mode === 'bulk') {
+    <p class="note mt-3">
+      {{ bulkSkipped }} skipped row{{ bulkSkipped > 1 ? 's are' : ' is' }} not included. They're in the error report.
+    </p>
+    }
+
+    <p class="muted small mt-2">
+      No Form 1096 is needed for e-filed returns. Forms stay pending until you check out.
+    </p>
+    }
+  </mat-tab-nav-panel>
+
+  <!-- Wizard Fixed Footer -->
+  <footer class="wizard-footer">
+    <div class="wizard-inner">
+      <button mat-stroked-button class="btn" [style.visibility]="step === 1 ? 'hidden' : 'visible'"
+        (click)="previousStep()">
+        Back
+      </button>
+
+      <span class="footer-message">{{ footerMessage }}</span>
+
+      <div class="footer-actions">
+        @if (step === 5) {
+        <button mat-stroked-button class="btn" (click)="keepPending()">
+          Keep as pending
+        </button>
+        }
+        <button mat-flat-button color="primary" class="btn primary" [disabled]="!nextEnabled" (click)="nextStep()">
+          {{ nextLabel }}
+        </button>
+      </div>
+    </div>
+  </footer>
+</main>
+} @else {
+
+<!-- ================= ADDED TO CART ================= -->
+<main class="page max-w-2xl mx-auto p-6 sm:p-12 text-center">
+  <div class="done-wrap flex flex-col items-center">
+    <div class="ic">
+      <img src="/assets/icons/check-green.svg" alt="check" width="28" height="28" />
+    </div>
+
+    <h1 class="text-(--fs-title) font-semibold">{{ doneHeading }}</h1>
+    <p class="muted text-sm text-(--ink-3) mt-2 max-w-md">{{ doneDetail }}</p>
+
+    <div class="done-actions flex flex-col gap-2.5 w-full max-w-xl mt-8">
+      <button  color="primary" class="btn primary flex items-center justify-between py-2.5"
+        (click)="checkout()">
+        <span>Check out and e-file {{ cartCount }} forms</span>
+        <img src="/assets/icons/chevron-right-dark-22.svg" alt="arrow-right" width="16" height="16" style="filter: brightness(100);"/>
+      </button>
+
+      <button class="btn flex items-center justify-between py-2.5" (click)="fileAgainSameFiler()">
+        <span>{{ sameFilerLabel }}</span>
+        <img src="/assets/icons/chevron-right-dark-22.svg" alt="arrow-right" width="16" height="16" style="filter: brightness(0);"/>
+      </button>
+
+      <button  class="btn flex items-center justify-between py-2.5" (click)="fileAgainOtherFiler()">
+        <span>New filing for a different filer</span>
+        <img src="/assets/icons/chevron-right-dark-22.svg" alt="arrow-right" width="16" height="16" style="filter: brightness(0);"/>
+      </button>
+
+      <button class="btn ghost flex items-center justify-between! py-2.5" (click)="goDashboard()">
+        <span>Back to dashboard</span>
+        <img src="/assets/icons/chevron-right-dark-22.svg" alt="arrow-right" width="16" height="16" style="filter: brightness(0);" />
+      </button>
+    </div>
+  </div>
+</main>
+}
+
+<!-- Slide-Over Drawer: Add / Edit Filer or Recipient -->
+@if (panelOpen) {
+<div class="scrim fixed inset-0 bg-black/40 z-40 transition-opacity" [attr.aria-label]="'Close ' + panelTitle"
+  (click)="closePanel()"></div>
+
+<aside class="panel show fixed top-0 right-0 bottom-0 w-full max-w-xl bg-white shadow-2xl z-50 flex flex-col overflow-hidden"
+  role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+  <header class="flex justify-between items-center p-4 border-b border-(--line)">
+    <h2 id="panelTitle" class="text-base font-bold text-(--ink)">{{ panelTitle }}</h2>
+    <button mat-icon-button type="button" aria-label="Close" (click)="closePanel()">
+      <img src="/assets/icons/close-muted.svg" alt="close" width="16" height="16" />
+    </button>
+  </header>
+
+  <div class="pb flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+    @if (panelKind === 'filer') {
+    @if (panelEditing && filerForm.warn) {
+    <div class="callout warn">{{
+      filerForm.warn }}</div>
+    }
+
+    @if (panelEditing && (filerForm.filed || filerForm.pending)) {
+    <div class="callout">
+      Changes apply to pending forms and new filings. Forms already filed keep the details they were filed with; correct
+      those with a corrected return.
+    </div>
+    }
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Payer</legend>
+      <mat-label>Legal name</mat-label>
+      <mat-form-field class="w-full " appearance="outline">
+        <input matInput id="fl-name" [ngModel]="filerForm.name" (ngModelChange)="filerForm.name = $event"
+          [errorStateMatcher]="matcher('name')" >
+        <mat-hint>As registered with the IRS for this EIN.</mat-hint>
+        <mat-error>{{ panelErrors['name'] }}</mat-error>
+      </mat-form-field>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <mat-label>EIN</mat-label>
+          <mat-form-field class=" w-full" appearance="outline">
+            <input matInput id="fl-ein" inputmode="numeric" autocomplete="off" placeholder="12-3456789"
+              [ngModel]="filerForm.ein" (ngModelChange)="onPanelTin($event)" [errorStateMatcher]="matcher('ein')">
+            <mat-error>{{ panelErrors['ein'] }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>Phone</mat-label>
+          <mat-form-field class=" w-full" appearance="outline">
+            <input matInput id="fl-phone" type="tel" [ngModel]="filerForm.phone"
+              (ngModelChange)="filerForm.phone = $event">
+            <mat-hint>Printed on the payer box of 1099s.</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Address</legend>
+      <div>
+        <mat-label>Street address</mat-label>
+        <mat-form-field class=" w-full" appearance="outline">
+          <input matInput id="fl-a1" autocomplete="address-line1" [ngModel]="filerForm.address"
+            (ngModelChange)="filerForm.address = $event" [errorStateMatcher]="matcher('address')">
+          <mat-error>{{ panelErrors['address'] }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div>
+        <mat-label>Suite (optional)</mat-label>
+        <mat-form-field class=" w-full" appearance="outline">
+          <input matInput id="fl-a2" [ngModel]="filerForm.address2" (ngModelChange)="filerForm.address2 = $event">
+        </mat-form-field>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <mat-label>City</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="fl-city" [ngModel]="filerForm.city" (ngModelChange)="filerForm.city = $event"
+              [errorStateMatcher]="matcher('city')">
+            <mat-error>{{ panelErrors['city'] }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>State</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <mat-select id="fl-st" [ngModel]="filerForm.state" (ngModelChange)="filerForm.state = $event"
+              [errorStateMatcher]="matcher('state')">
+              <mat-option value="">Select</mat-option>
+              @for (state of stateOptions; track state[0]) {
+              <mat-option [value]="state[0]">{{ state[0] }} · {{ state[1] }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>{{ panelErrors['state'] }}</mat-error>
+          </mat-form-field>
+        </div>
+
+
+        <div>
+
+          <mat-label>ZIP</mat-label>
+          <mat-form-field class=" w-full" appearance="outline">
+            <input matInput id="fl-zip" inputmode="numeric" [ngModel]="filerForm.zip"
+              (ngModelChange)="filerForm.zip = $event" [errorStateMatcher]="matcher('zip')">
+            <mat-error>{{ panelErrors['zip'] }}</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Filing details</legend>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <mat-label>Contact email</mat-label>
+          <mat-form-field class=" w-full" appearance="outline">
+            <input matInput id="fl-email" type="email" [ngModel]="filerForm.email"
+              (ngModelChange)="filerForm.email = $event" [errorStateMatcher]="matcher('email')">
+            <mat-hint>Receives filing status updates.</mat-hint>
+            <mat-error>{{ panelErrors['email'] }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>Payer state ID</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="fl-stno" placeholder="MD 12345678" [ngModel]="filerForm.stateNo"
+              (ngModelChange)="filerForm.stateNo = $event">
+            <mat-hint>Pre-fills Box 6 on state copies.</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+    </fieldset>
+    } @else {
+    @if (panelRecipientIssues.length) {
+    <div class="callout warn">
+      Fix before filing: {{ panelRecipientIssues.join(', ') }}.
+    </div>
+    }
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Taxpayer identification</legend>
+      <mat-radio-group class="radios flex gap-4" aria-label="TIN type" name="tinType" [value]="recipientForm.type"
+        (change)="recipientForm.type = $event.value">
+        @for (option of tinTypes; track option[0]) {
+        <mat-radio-button [value]="option[0]">{{ option[1] }}</mat-radio-button>
+        }
+      </mat-radio-group>
+
+      @if (isUnknownTin) {
+      <div class="callout unknown-callout mt-2">
+        Save the recipient and send a W-9 request. The form stays pending until the TIN comes back, so nothing is filed
+        without one.
+      </div>
+      } @else {
+        <div>
+          <mat-label>{{ panelTinLabel }}</mat-label>
+          <mat-form-field class=" tin-field w-full mt-2" appearance="outline">
+            <input matInput id="p-tin" inputmode="numeric" autocomplete="off" [placeholder]="panelTinPlaceholder"
+              [ngModel]="recipientForm.tin" (ngModelChange)="onPanelTin($event)" [errorStateMatcher]="matcher('tin')">
+            <mat-error>{{ panelErrors['tin'] }}</mat-error>
+          </mat-form-field>
+        </div>
+      }
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Name</legend>
+      @if (isBusinessRecipient) {
+        <div>
+          <mat-label>Business name</mat-label>
+          <mat-form-field class=" w-full" appearance="outline">
+            <input matInput id="p-biz" [ngModel]="recipientForm.name" (ngModelChange)="recipientForm.name = $event"
+              [errorStateMatcher]="matcher('name')">
+            <mat-hint>Exactly as on the W-9 line 1. The IRS matches this name to the EIN.</mat-hint>
+            <mat-error>{{ panelErrors['name'] }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>Doing business as (optional)</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-dba" [ngModel]="recipientForm.dba" (ngModelChange)="recipientForm.dba = $event">
+          </mat-form-field>
+        </div>
+      } @else {
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <mat-label>First name</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-first" [ngModel]="recipientForm.first" (ngModelChange)="recipientForm.first = $event"
+              [errorStateMatcher]="matcher('name')">
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>Middle</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-mid" [ngModel]="recipientForm.middle" (ngModelChange)="recipientForm.middle = $event">
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>Last name</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-last" [ngModel]="recipientForm.last" (ngModelChange)="recipientForm.last = $event"
+              [errorStateMatcher]="matcher('name')">
+          </mat-form-field>
+        </div>
+      </div>
+      @if (panelErrors['name']) {
+      <span class="text-xs text-(--red) block mt-1">{{ panelErrors['name'] }}</span>
+      }
+      }
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Mailing address</legend>
+      <div>
+        <mat-label>Country</mat-label>
+        <mat-form-field class=" w-full" appearance="outline">
+          <mat-select id="p-country" [ngModel]="recipientForm.country" (ngModelChange)="recipientForm.country = $event">
+            <mat-option value="US">United States</mat-option>
+            <mat-option value="FOREIGN">Outside the US</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div>
+        <mat-label>Street address</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="p-a1" autocomplete="address-line1" [ngModel]="recipientForm.address"
+            (ngModelChange)="recipientForm.address = $event" [errorStateMatcher]="matcher('address')">
+          <mat-error>{{ panelErrors['address'] }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div>
+        <mat-label>Apt, suite (optional)</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="p-a2" [ngModel]="recipientForm.address2" (ngModelChange)="recipientForm.address2 = $event">
+        </mat-form-field>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <mat-label>City</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-city" [ngModel]="recipientForm.city" (ngModelChange)="recipientForm.city = $event"
+              [errorStateMatcher]="matcher('city')">
+            <mat-error>{{ panelErrors['city'] }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>State</mat-label>
+          <mat-form-field class=" w-full" appearance="outline">
+            <mat-select id="p-st" [ngModel]="recipientForm.state" (ngModelChange)="recipientForm.state = $event"
+              [errorStateMatcher]="matcher('state')">
+              <mat-option value="">Select</mat-option>
+              @for (state of stateOptions; track state[0]) {
+              <mat-option [value]="state[0]">{{ state[0] }} · {{ state[1] }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>{{ panelErrors['state'] }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>ZIP</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-zip" inputmode="numeric" [ngModel]="recipientForm.zip"
+              (ngModelChange)="recipientForm.zip = $event" [errorStateMatcher]="matcher('zip')">
+            <mat-error>{{ panelErrors['zip'] }}</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Delivery</legend>
+      <div>
+        <mat-label>Email (optional)</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="p-email" type="email" [ngModel]="recipientForm.email"
+            (ngModelChange)="recipientForm.email = $event" [errorStateMatcher]="matcher('email')">
+          <mat-hint>Used for W-9 requests and electronic copies.</mat-hint>
+          <mat-error>{{ panelErrors['email'] }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-checkbox class="chk consent-check" [ngModel]="recipientForm.econsent"
+        (ngModelChange)="recipientForm.econsent = $event">
+        Recipient consented to receive copies electronically
+      </mat-checkbox>
+    </fieldset>
+    }
+  </div>
+
+  <footer class="p-4 border-t border-(--line) flex justify-end gap-2 bg-(--soft)">
+    <button mat-stroked-button class="btn" type="button" (click)="closePanel()">Cancel</button>
+
+    @if (panelKind === 'filer') {
+    <button mat-flat-button color="primary" class="btn primary" type="button" (click)="saveFiler()">
+      {{ panelEditing ? 'Save changes' : 'Add filer' }}
+    </button>
+    } @else {
+    @if (!panelEditing) {
+    <button mat-stroked-button class="btn" type="button" (click)="saveRecipient(true)">
+      Save and request W-9
+    </button>
+    }
+    <button mat-flat-button color="primary" class="btn primary" type="button" (click)="saveRecipient()">
+      {{ panelEditing ? 'Save changes' : 'Save and select' }}
+    </button>
+    }
+  </footer>
+</aside>
+}
+
+<!-- New Filing Chooser Modal -->
+@if (chooserOpen) {
+<div class="scrim fixed inset-0 bg-black/40 z-40" aria-label="Close new filing chooser" (click)="closeChooser()"></div>
+
+<div
+  class="chooser w-full max-w-xl bg-(--paper) rounded-xl [box-shadow:var(--sh-4)] z-50 overflow-hidden"
+  role="dialog" aria-modal="true" aria-labelledby="chTitle">
+  <div class="ch-h flex justify-between items-center bg-(--navy) text-white p-4">
+    <div>
+      <h2 id="chTitle" class="text-xl font-semibold text-white">{{ chooserTitle }}</h2>
+      <div class="sub text-xs text-taxseer-blue-muted mt-0.5">{{ chooserSub }}</div>
+    </div>
+    <button mat-icon-button class="x text-white" type="button" aria-label="Close" (click)="closeChooser()">
+      <img src="/assets/icons/close-white.svg" alt="close" width="15" height="15" />
+    </button>
+  </div>
+
+  <div class="ch-b p-5 space-y-3">
+    <button mat-button
+      class="choice main w-full flex items-start gap-3 p-3.5 rounded-lg border border-(--line) hover:bg-(--hover) text-left transition-colors py-4"
+      type="button" (click)="startFromChooser('manual')">
+      <span class="ci flex-none w-9 h-9 rounded-lg bg-(--navy) grid place-items-center mt-0.5">
+        <img src="/assets/icons/edit-white.svg" alt="edit" width="22" height="22" />
+      </span>
+      <span class="flex-1 min-w-0">
+        <b class="block font-semibold text-(--ink)">Manual entry</b>
+        <span class="d block text-sm text-(--ink-3) mt-0.5">Pick recipients and type the amounts. Best for
+          a handful of forms.</span>
+      </span>
+      <span class="go flex items-center gap-1.5 flex-none mt-1">
+        <kbd>N</kbd>
+        <img src="/assets/icons/arrow-right-navy-22.svg" alt="arrow-right" width="18" height="18" />
+      </span>
+    </button>
+
+    <button mat-button
+      class="choice alt w-full flex items-start gap-3 p-3.5 rounded-lg border border-(--line) hover:bg-(--hover) text-left transition-colors py-4"
+      type="button" (click)="startFromChooser('bulk')">
+      <span class="ci flex-none w-9 h-9 rounded-lg bg-(--blue-tint) grid place-items-center mt-0.5">
+        <img src="/assets/icons/spreadsheet-navy.svg" alt="spreadsheet" width="22" height="22" />
+      </span>
+      <span class="flex-1 min-w-0">
+        <b class="block font-semibold text-(--ink)">Bulk import</b>
+        <span class="d block text-sm text-(--ink-3) mt-0.5">Upload the TaxSeer Excel template or your own
+          file.</span>
+      </span>
+      <span class="go flex items-center gap-1.5 flex-none mt-1">
+        <kbd>I</kbd>
+        <img src="/assets/icons/arrow-right-navy-22.svg" alt="arrow-right" width="18" height="18" />
+      </span>
+    </button>
+
+    <div class="foot text-xs text-(--ink-3) pt-2 text-center">
+      Next you'll choose the tax year and form. Templates for bulk import are on the upload step.
+    </div>
+  </div>
+</div>
+}
+
+<!-- Toast Message -->
+<div
+  class="toast fixed bottom-4 right-4 z-50 bg-(--ink) text-white text-xs px-4 py-2.5 rounded-lg shadow-lg transition-transform"
+  [class.translate-y-24]="!showToast" role="status" aria-live="polite">
+  {{ toastMessage }}
+</div>

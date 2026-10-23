@@ -1,0 +1,93 @@
+/* -------------------------------------------------------------------------- */
+/* IBM Plex Sans — latin subset, variable weight axis                         */
+/* -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/ibm-plex/IBMPlexSans-latin.woff2') format('woff2');
+}
+
+/* -------------------------------------------------------------------------- */
+/* IBM Plex Mono — latin subset, static instances                             */
+/* -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex/IBMPlexMono-400-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/ibm-plex/IBMPlexMono-500-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ibm-plex/IBMPlexMono-600-latin.woff2') format('woff2');
+}
+
+/* -------------------------------------------------------------------------- */
+/* Geist                                                                      */
+/* -------------------------------------------------------------------------- */
+@font-face {
+  font-family: Geist;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/geist/Geist.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: Geist;
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/geist/Geist-Italic.woff2') format('woff2');
+}
+
+/* -------------------------------------------------------------------------- */
+/* Geist Mono                                                                 */
+/* -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/geist/GeistMono.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/geist/GeistMono-Italic.woff2') format('woff2');
+}
+
+/* -------------------------------------------------------------------------- */
+/* Base typographic styles                                                    */
+/* -------------------------------------------------------------------------- */
+@layer base {
+  html,
+  :host {
+    -webkit-font-smoothing: var(--font-smoothing);
+    font-optical-sizing: var(--font-optical-sizing);
+  }
+
+  body {
+    
+    font-size: var(--text-base);
+    line-height: var(--leading-5);
+    font-weight: var(--font-weight-normal);
+  }
+}
