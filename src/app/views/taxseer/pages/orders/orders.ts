@@ -2,10 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
+import { OrderService } from '../../../../core/api/order.service';
+import { TaxseerOrder } from './orders.data';
 
 export type OrderItem = {
     no: string;
@@ -51,99 +53,6 @@ const FILER_IDS: Record<string, number> = {
     'Nextlinx Technologies Inc': 8,
 };
 
-const INITIAL_ORDERS: OrderItem[] = [
-    {
-        no: '20261204',
-        filer: 'Nextlinx Technologies Inc',
-        placed: 'Jan 11, 2026',
-        year: '2025',
-        forms: { 'W-2': 130 },
-        amt: 260,
-        status: 'rejected',
-        rej: 2,
-        copies: 'Held until corrected',
-        files: 'ready',
-    },
-    {
-        no: '20261198',
-        filer: 'Maryland Trucking Company',
-        placed: 'Jan 10, 2026',
-        year: '2025',
-        forms: { 'W-2': 49 },
-        amt: 98,
-        status: 'process',
-        copies: 'Sends on acceptance',
-        files: 'none',
-    },
-    {
-        no: '20261197',
-        filer: 'Maryland Trucking Company',
-        placed: 'Jan 10, 2026',
-        year: '2025',
-        forms: { '1099-NEC': 12 },
-        amt: 24,
-        status: 'rejected',
-        rej: 1,
-        copies: 'Held until corrected',
-        files: 'ready',
-    },
-    {
-        no: '20261160',
-        filer: 'Tech International Corporation',
-        placed: 'Jan 8, 2026',
-        year: '2025',
-        forms: { '1099-NEC': 26, '1099-MISC': 3 },
-        amt: 58,
-        status: 'accepted',
-        copies: '29 emailed',
-        files: 'ready',
-    },
-    {
-        no: '20261144',
-        filer: 'Infinite Technologies',
-        placed: 'Jan 7, 2026',
-        year: '2025',
-        forms: { '1099-NEC': 28, '1099-MISC': 3 },
-        amt: 62,
-        status: 'accepted',
-        copies: '29 emailed, 2 mailed',
-        files: 'ready',
-    },
-    {
-        no: '20261102',
-        filer: 'New York Accounting',
-        placed: 'Jan 5, 2026',
-        year: '2025',
-        forms: { '1099-NEC': 4 },
-        amt: 8,
-        status: 'accepted',
-        copies: '4 emailed',
-        files: 'ready',
-    },
-    {
-        no: '20251031',
-        filer: 'Tech International Corporation',
-        placed: 'Jan 27, 2025',
-        year: '2024',
-        forms: { '1099-NEC': 25 },
-        amt: 50,
-        status: 'accepted',
-        copies: '21 emailed, 4 mailed',
-        files: 'expired',
-    },
-    {
-        no: '20251012',
-        filer: 'Infinite Technologies',
-        placed: 'Jan 22, 2025',
-        year: '2024',
-        forms: { '1099-NEC': 27 },
-        amt: 54,
-        status: 'accepted',
-        copies: '27 emailed',
-        files: 'expired',
-    },
-];
-
 @Component({
     selector: 'taxseer-orders',
     standalone: true,
@@ -156,8 +65,9 @@ const INITIAL_ORDERS: OrderItem[] = [
 })
 export class TaxseerOrders implements OnInit {
     private readonly route = inject(ActivatedRoute);
+    private readonly orderService = inject(OrderService);
 
-    readonly orders = INITIAL_ORDERS;
+    orders: OrderItem[] = [];
 
     selectedStatus: 'all' | 'process' | 'rejected' | 'accepted' = 'all';
     searchQuery = '';
@@ -183,6 +93,75 @@ export class TaxseerOrders implements OnInit {
                 }
             }
         });
+        this.loadOrders();
+    }
+
+    private loadOrders(): void {
+        const params: { status?: string; q?: string } = {};
+        if (this.selectedStatus !== 'all') params.status = this.selectedStatus;
+        if (this.searchQuery.trim()) params.q = this.searchQuery.trim();
+
+        this.orderService.getAll(params).subscribe({
+            next: (data) => {
+                this.orders = data.map(o => this.mapOrder(o));
+            },
+            error: () => {
+                // API not yet available — leave orders as empty array
+            },
+        });
+    }
+
+    private mapOrder(o: TaxseerOrder): OrderItem {
+        // Map API status to local status
+        let status: 'process' | 'accepted' | 'rejected';
+        if (o.status === 'in-process') {
+            status = 'process';
+        } else if (o.status === 'rejected') {
+            status = 'rejected';
+        } else {
+            status = 'accepted';
+        }
+
+        // Build forms map from formSummary string (e.g. "1099-NEC, 1099-MISC")
+        const formsMap: Record<string, number> = {};
+        const formKeys = o.formSummary.split(',').map(s => s.trim()).filter(Boolean);
+        if (formKeys.length > 0) {
+            const totalForms = o.forms;
+            if (formKeys.length === 1) {
+                formsMap[formKeys[0]] = totalForms;
+            } else {
+                // Distribute evenly — exact split is not available from summary
+                const perForm = Math.floor(totalForms / formKeys.length);
+                const remainder = totalForms - perForm * (formKeys.length - 1);
+                formKeys.forEach((key, i) => {
+                    formsMap[key] = i === formKeys.length - 1 ? remainder : perForm;
+                });
+            }
+        }
+
+        // Determine files status based on downloadable flag and year
+        const currentYear = new Date().getFullYear();
+        let files: 'ready' | 'none' | 'expired';
+        if (!o.downloadable) {
+            files = 'none';
+        } else if (o.taxYear < currentYear - 1) {
+            files = 'expired';
+        } else {
+            files = 'ready';
+        }
+
+        return {
+            no: o.id,
+            filer: o.filerName,
+            placed: o.placedDate,
+            year: String(o.taxYear),
+            forms: formsMap,
+            amt: o.amount,
+            status,
+            rej: o.rejectedForms > 0 ? o.rejectedForms : undefined,
+            copies: o.recipientCopies,
+            files,
+        };
     }
 
     get filerOptions(): string[] {

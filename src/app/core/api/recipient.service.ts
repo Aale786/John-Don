@@ -9,6 +9,11 @@ export class RecipientService {
   private readonly http = inject(HttpClient);
   private readonly base = `${API_BASE}/api/recipients`;
 
+  /** Fetch all recipients across all filers (for the Recipients/W-9 page). */
+  getAll(): Observable<FilerRecipient[]> {
+    return this.http.get<FilerRecipient[]>(this.base);
+  }
+
   getByFiler(filerId: number): Observable<FilerRecipient[]> {
     return this.http.get<FilerRecipient[]>(this.base, { params: { filerId } });
   }

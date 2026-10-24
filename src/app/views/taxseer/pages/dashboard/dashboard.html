@@ -1284,6 +1284,17 @@
     <p class="muted small mt-2">
       No Form 1096 is needed for e-filed returns. Forms stay pending until you check out.
     </p>
+
+    <!-- AddToCartComponent — wires the review step to the real cart API -->
+    @if (mode === 'manual') {
+    <div class="mt-4">
+      <app-add-to-cart
+        [filings]="completedFilings"
+        [userId]="currentUserId"
+        (cartUpdated)="onCartUpdated()">
+      </app-add-to-cart>
+    </div>
+    }
     }
   </mat-tab-nav-panel>
 

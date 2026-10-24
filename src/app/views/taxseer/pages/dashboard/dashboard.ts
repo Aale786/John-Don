@@ -21,6 +21,8 @@ import {
   necRowErrors,
   necRowWarnings,
 } from '../filing/components/nec-amounts/nec-amounts';
+import { AddToCartComponent } from '../../components/add-to-cart/add-to-cart';
+import { FilerFiling } from '../filer-details/filer-details.data';
 
 type FilingMode = 'manual' | 'bulk';
 
@@ -131,6 +133,7 @@ type ResumeItem = {
       CommonModule,
       FormsModule,
       NecAmountsComponent,
+      AddToCartComponent,
       MatButtonModule,
       MatButtonToggleModule,
       MatCheckboxModule,
@@ -153,6 +156,37 @@ export class TaxseerDashboard implements OnInit {
 
   cartCount = 52;
   walletBalance = 100;
+
+  /** The current logged-in user ID — used by AddToCartComponent. */
+  readonly currentUserId = 1;
+
+  /** Completed filings for the currently-selected filer and form (step 5 review). */
+  get completedFilings(): FilerFiling[] {
+    // In the wizard flow the selected recipients' amount rows represent the
+    // forms to file; we build a lightweight FilerFiling[] from them so the
+    // AddToCartComponent can display and add them.
+    return this.amountRowsToUse
+      .filter(row => this.amountRowErrors(row).length === 0)
+      .map(row => ({
+        id: row.id.replace('recipient-', ''),
+        filerId: this.selectedFilerId ?? 0,
+        taxYear: this.taxYear,
+        form: this.selectedForm,
+        recipient: row.name,
+        tin: row.tin,
+        amount: row.box1 != null ? Number(row.box1) : null,
+        status: 'Completed' as const,
+        edited: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      }));
+  }
+
+  /** Called by AddToCartComponent when the API cart calls complete. */
+  onCartUpdated(): void {
+    this.cartCount += this.completedFilings.length;
+    this.doneCount = this.formCount();
+    this.activeView = 'done';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   activeView: 'dashboard' | 'wizard' | 'done' = 'dashboard';
   doneCount = 0;
   mode: FilingMode = 'manual';

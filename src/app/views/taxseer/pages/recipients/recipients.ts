@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
+import { RecipientService } from '../../../../core/api/recipient.service';
+import { W9Service } from '../../../../core/api/w9.service';
 
 type Status = 'Submitted' | 'Requested' | 'Not requested';
 
@@ -52,115 +54,6 @@ const FILER_BY_ID = Object.fromEntries(
 
 const TODAY = new Date('2026-01-14T12:00:00');
 
-const INITIAL_RECIPIENTS: Recipient[] = [
-    {
-        id: 1,
-        filer: 'Tech International Corporation',
-        name: 'Mark Waugh',
-        tin: '•••-••-2330',
-        email: 'mark.waugh@example.com',
-        status: 'Requested',
-        sent: '2025-11-04',
-        rem: 2,
-    },
-    {
-        id: 2,
-        filer: 'Tech International Corporation',
-        name: 'Derek Randal',
-        tin: '•••-••-5678',
-        email: 'derek.r@example.com',
-        status: 'Submitted',
-        sent: '2025-11-02',
-        got: '2025-11-12',
-    },
-    {
-        id: 3,
-        filer: 'Tech International Corporation',
-        name: 'Priya Nair',
-        tin: '•••-••-9021',
-        email: 'priya.nair@example.com',
-        status: 'Submitted',
-        sent: '2025-11-02',
-        got: '2025-11-05',
-    },
-    {
-        id: 4,
-        filer: 'Tech International Corporation',
-        name: 'Hillside Legal Group PC',
-        tin: '52-1234102',
-        email: 'billing@hillsidelegal.example',
-        status: 'Submitted',
-        sent: '2025-11-02',
-        got: '2025-11-03',
-    },
-    {
-        id: 5,
-        filer: 'Tech International Corporation',
-        name: 'Tariq Fateh',
-        tin: '8 digits on file',
-        email: '',
-        status: 'Not requested',
-    },
-    {
-        id: 6,
-        filer: 'Maryland Trucking Company',
-        name: 'Blue Ridge Couriers',
-        tin: '—',
-        email: 'ops@blueridge.example',
-        status: 'Requested',
-        sent: '2025-12-15',
-        rem: 1,
-    },
-    {
-        id: 7,
-        filer: 'Precise Technologies Inc',
-        name: 'Jose Ortega',
-        tin: '—',
-        email: 'jortega@example.com',
-        status: 'Requested',
-        sent: '2025-12-20',
-        rem: 1,
-    },
-    {
-        id: 8,
-        filer: 'Precise Technologies Inc',
-        name: 'Karin Lindqvist',
-        tin: '—',
-        email: 'karin.l@example.com',
-        status: 'Requested',
-        sent: '2026-01-02',
-        rem: 0,
-    },
-    {
-        id: 9,
-        filer: 'Avi Enterprises',
-        name: 'Harbor Supply LLC',
-        tin: '—',
-        email: 'ap@harborsupply.example',
-        status: 'Requested',
-        sent: '2026-01-02',
-        rem: 0,
-    },
-    {
-        id: 10,
-        filer: 'Avi Enterprises',
-        name: 'Mina Patel',
-        tin: '•••-••-4410',
-        email: 'mina.p@example.com',
-        status: 'Submitted',
-        sent: '2025-12-01',
-        got: '2025-12-04',
-    },
-    {
-        id: 11,
-        filer: 'Avi Enterprises',
-        name: 'Owen Ortiz',
-        tin: '—',
-        email: '',
-        status: 'Not requested',
-    },
-];
-
 @Component({
     selector: 'taxseer-recipients',
     standalone: true,
@@ -170,13 +63,13 @@ const INITIAL_RECIPIENTS: Recipient[] = [
     ],
     templateUrl: './recipients.html',
 })
-export class TaxseerRecipients {
+export class TaxseerRecipients implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+    private readonly recipientService = inject(RecipientService);
+    private readonly w9Service = inject(W9Service);
 
-    recipients: Recipient[] = INITIAL_RECIPIENTS.map((recipient) => ({
-        ...recipient,
-    }));
+    recipients: Recipient[] = [];
 
     searchText = '';
 
@@ -193,8 +86,30 @@ export class TaxseerRecipients {
 
     private toastTimer?: ReturnType<typeof setTimeout>;
 
-    constructor() {
+    ngOnInit(): void {
+        this.loadRecipients();
         this.applyDeepLink();
+    }
+
+    private loadRecipients(): void {
+        this.recipientService.getAll().subscribe({
+            next: (data) => {
+                this.recipients = data.map((r: any) => ({
+                    id: Number(r.id),
+                    filer: r.filerName ?? FILER_BY_ID[r.filerId] ?? 'Unknown',
+                    name: r.name,
+                    tin: r.tin,
+                    email: r.email ?? '',
+                    status: (r.w9 as Status) ?? 'Not requested',
+                    sent: r.w9SentDate ?? undefined,
+                    got: r.w9ReceivedDate ?? undefined,
+                    rem: r.reminderCount ?? 0,
+                }));
+            },
+            error: () => {
+                // API not yet available — leave recipients as empty array
+            },
+        });
     }
 
     // ---------------------------------------------------------
@@ -432,7 +347,11 @@ export class TaxseerRecipients {
         }
 
         waiting.forEach((recipient) => {
-            recipient.rem = (recipient.rem ?? 0) + 1;
+            this.w9Service.remind(recipient.id).subscribe({
+                next: () => {
+                    recipient.rem = (recipient.rem ?? 0) + 1;
+                },
+            });
         });
 
         this.showToast(
@@ -452,10 +371,15 @@ export class TaxseerRecipients {
             return;
         }
 
+        const filerId = this.filerId(group.filer);
         waiting.forEach((recipient) => {
-            recipient.status = 'Requested';
-            recipient.sent = '2026-01-14';
-            recipient.rem = 0;
+            this.w9Service.sendRequest(recipient.id, filerId).subscribe({
+                next: () => {
+                    recipient.status = 'Requested';
+                    recipient.sent = new Date().toISOString().slice(0, 10);
+                    recipient.rem = 0;
+                },
+            });
         });
 
         this.showToast(
@@ -480,7 +404,11 @@ export class TaxseerRecipients {
             return;
         }
 
-        recipient.rem = (recipient.rem ?? 0) + 1;
+        this.w9Service.remind(recipient.id).subscribe({
+            next: () => {
+                recipient.rem = (recipient.rem ?? 0) + 1;
+            },
+        });
 
         this.showToast(
             `Reminder sent to ${recipient.name}`,
@@ -493,9 +421,14 @@ export class TaxseerRecipients {
             return;
         }
 
-        recipient.status = 'Requested';
-        recipient.sent = '2026-01-14';
-        recipient.rem = 0;
+        const filerId = this.filerId(recipient.filer);
+        this.w9Service.sendRequest(recipient.id, filerId).subscribe({
+            next: () => {
+                recipient.status = 'Requested';
+                recipient.sent = new Date().toISOString().slice(0, 10);
+                recipient.rem = 0;
+            },
+        });
 
         this.showToast(
             `W-9 request sent to ${recipient.name}`,
@@ -516,7 +449,11 @@ export class TaxseerRecipients {
         );
 
         waiting.forEach((recipient) => {
-            recipient.rem = (recipient.rem ?? 0) + 1;
+            this.w9Service.remind(recipient.id).subscribe({
+                next: () => {
+                    recipient.rem = (recipient.rem ?? 0) + 1;
+                },
+            });
         });
 
         this.showToast(

@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Wire the Recipients/W-9 page and the Orders page to the real API. Also create the replacement AddToCartComponent (the user stated the existing component is not working and a new one should be created matching the theme). Depends on FEAT-002 (services must exist). Independent of FEAT-004.",
+  "status": "completed",
+  "steps": [
+    "Step 1 — Wire the Recipients page (D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\recipients\\recipients.ts).\n  - Inject RecipientService and W9Service.\n  - Remove INITIAL_RECIPIENTS in-memory constant and the `recipients` array initializer from the class.\n  - Declare `recipients: Recipient[] = []` and load via recipientService call in ngOnInit or constructor. Since recipients.ts groups by filer name (not ID), the API call should be GET /api/recipients (no filerId filter) to fetch all, or add a backend endpoint GET /api/recipients/all that returns all recipients across filers; use whichever pattern is simpler — fetching all is fine for now.\n  - Replace `requestRecipient()` to call w9Service.sendRequest(recipient.id, filerId).subscribe(...).\n  - Replace `resendRequest()` to call w9Service.remind(id).subscribe(...).\n  - For the `groups()` method: keep the existing grouping and filter logic exactly as written — only the data source changes from static array to API-loaded array.\n  - DO NOT touch recipients.html.",
+
+    "Step 2 — Wire the Orders page (D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\orders\\orders.ts).\n  - Inject OrderService.\n  - Remove INITIAL_ORDERS static array.\n  - Declare `orders: OrderItem[] = []` and load in ngOnInit via orderService.getAll({status: this.selectedStatus, q: this.searchQuery}).subscribe(data => this.orders = data).\n  - When filter chips change (setStatus, selectedFiler, selectedYear, searchQuery), re-call orderService.getAll({...params}).subscribe(...) to reload.\n  - Map TaxseerOrder (from orders.data.ts type) to the local OrderItem type inside the service subscription — the shapes are very similar; create a private mapOrder(o: TaxseerOrder): OrderItem helper in the component.\n  - DO NOT touch orders.html.",
+
+    "Step 3 — Create the new AddToCartComponent. The user's original component is broken; create a fresh one at D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\components\\add-to-cart\\add-to-cart.ts (and add-to-cart.html).\n  - Input: @Input() filings: FilerFiling[] — the list of completed filings to add.\n  - Input: @Input() userId: number.\n  - Output: @Output() cartUpdated = new EventEmitter<void>().\n  - Inject CartService.\n  - UI (add-to-cart.html): match the existing pill/chip/button aesthetic from STYLING.md. Show a list of the passed-in filings, a total count and price (assume $2 per form — same as dummy order data), and an 'Add to cart' button.\n  - When 'Add to cart' is clicked, call cartService.addToCart(filing.id, userId) for each filing in sequence (use forkJoin or concatMap), then emit cartUpdated.\n  - Show a disabled spinner state while the calls are in flight.\n  - Use classes from the existing design system: p-ok, p-warn, p-neutral, p-info, p-err for status pills (see STYLING.md). Use mat-button, mat-chip from Angular Material — both are already imported elsewhere in the project.",
+
+    "Step 4 — Register AddToCartComponent. In dashboard.ts, import and add AddToCartComponent to the imports array of the @Component decorator. In the dashboard.html, wherever the cart-add action currently occurs (step 5 'Review'), replace any broken cart component reference with <app-add-to-cart [filings]='completedFilings' [userId]='currentUserId' (cartUpdated)='onCartUpdated()'></app-add-to-cart>. Add the supporting properties and onCartUpdated() handler to dashboard.ts: onCartUpdated() updates cartCount by calling walletService or just reloads the count.",
+
+    "Step 5 — Verify: run `npm run build` from D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse- and confirm no TypeScript errors."
+  ],
+  "acceptance_criteria": [
+    "`npm run build` exits with no TypeScript errors",
+    "Recipients page loads recipient data from API, not from INITIAL_RECIPIENTS constant",
+    "Orders page loads orders from API, not from INITIAL_ORDERS constant",
+    "AddToCartComponent exists at src/app/views/taxseer/components/add-to-cart/add-to-cart.ts and compiles",
+    "AddToCartComponent is wired into the dashboard review step",
+    "No CSS, SCSS, or HTML files (other than the new add-to-cart.html) are modified"
+  ],
+  "verification": [
+    "Run `npm run build` from D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse- — expect zero TypeScript errors",
+    "With backend running, navigate to http://localhost:4200/taxseer/recipients and http://localhost:4200/taxseer/orders — pages render without console errors"
+  ],
+  "blocked_reason": null,
+  "findings": "All steps completed and build passes with zero TypeScript errors. Key findings: (1) RecipientService.getAll() method was added to recipient.service.ts to support the recipients page fetching all recipients across filers (GET /api/recipients with no filerId). (2) The recipients.ts API response shape maps r.filerName || FILER_BY_ID[r.filerId] so it works with both response shapes the backend might return. (3) Orders mapping handles 'in-process' -> 'process' status normalisation and splits multi-form order summaries evenly across form keys. (4) The AddToCartComponent uses concatMap from RxJS to sequence cart API calls and emits cartUpdated on completion. (5) dashboard.ts completedFilings getter builds FilerFiling[] from the current amountRowsToUse (wizard step 5 manual mode); onCartUpdated() advances to the 'done' screen. (6) dashboard.html was minimally modified: only the <app-add-to-cart> block was inserted inside the step 5 section — no CSS, layout, or other HTML was changed."
+}
