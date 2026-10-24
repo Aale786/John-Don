@@ -13,7 +13,7 @@ export class W9Service {
   }
 
   sendRequest(recipientId: number, filerId: number): Observable<any> {
-    return this.http.post<any>(`${this.base}/request`, { recipientId, filerId });
+    return this.http.post<any>(`${this.base}/send`, { recipientId, filerId });
   }
 
   remind(id: number): Observable<any> {
