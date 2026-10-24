@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -9,15 +9,16 @@ import { TAXSEER_ORDERS } from '../orders/orders.data';
 import {
   DOWNLOAD_TYPES,
   FILING_STEPS,
-  FILER_DOWNLOADS,
-  FILER_FILINGS,
-  FILER_RECIPIENTS,
   STEP_HELP,
   FilerDownload,
   FilerFiling,
   FilerRecipient,
   FilingStatus,
 } from './filer-details.data';
+import { FilerService } from '../../../../core/api/filer.service';
+import { RecipientService } from '../../../../core/api/recipient.service';
+import { FilingService } from '../../../../core/api/filing.service';
+import { DownloadService } from '../../../../core/api/download.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -76,11 +77,15 @@ type FilerEditErrors = {
     ],
   templateUrl: './filer-details.html',
 })
-export class FilerDetailsComponent {
+export class FilerDetailsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   readonly store = inject(TaxseerFilerStore);
+  private readonly filerService = inject(FilerService);
+  private readonly recipientService = inject(RecipientService);
+  private readonly filingService = inject(FilingService);
+  private readonly downloadService = inject(DownloadService);
   readonly states = US_STATES;
   readonly stateNames = US_STATE_NAMES;
   readonly formatEin = formatEin;
@@ -113,12 +118,9 @@ export class FilerDetailsComponent {
     { id: 'summary', label: 'Summary' },
   ];
 
-  readonly recipientsState = signal<FilerRecipient[]>(
-    FILER_RECIPIENTS.map(r => ({ ...r }))
-  );
-
-  readonly filingsState = signal<FilerFiling[]>([...FILER_FILINGS]);
-  readonly downloadsState = signal<FilerDownload[]>([...FILER_DOWNLOADS]);
+  readonly recipientsState = signal<FilerRecipient[]>([]);
+  readonly filingsState = signal<FilerFiling[]>([]);
+  readonly downloadsState = signal<FilerDownload[]>([]);
 
   readonly year = signal(2025);
   readonly status = signal<FilingStatus>('Pending');
@@ -145,7 +147,43 @@ export class FilerDetailsComponent {
 
   private toastTimer: ReturnType<typeof setTimeout> | undefined;
 
-  readonly filer = computed(() => this.store.getById(this.routeId()));
+  readonly filerData = signal<TaxseerFiler | undefined>(undefined);
+
+  readonly filer = computed(() => this.filerData());
+
+  constructor() {
+    // Reload API data whenever the route filer ID changes
+    effect(() => {
+      const id = this.routeId();
+      if (id) {
+        this.loadFilerData(id);
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    // Initial load is handled by the effect above
+  }
+
+  private loadFilerData(id: number): void {
+    this.filerService.getById(id).subscribe(f => {
+      this.filerData.set(f);
+      // Also keep the store in sync for nav list
+      this.store.save(f);
+    });
+
+    this.recipientService.getByFiler(id).subscribe(data =>
+      this.recipientsState.set(data.map(r => ({ ...r })))
+    );
+
+    this.filingService.getByFiler(id).subscribe(data =>
+      this.filingsState.set([...data])
+    );
+
+    this.downloadService.getByFiler(id).subscribe(data =>
+      this.downloadsState.set([...data])
+    );
+  }
 
   readonly filerIndex = computed(() =>
     this.store.filers().findIndex(f => f.id === this.routeId())
@@ -802,16 +840,20 @@ export class FilerDetailsComponent {
     this.editErrors.set(errors);
     if (Object.keys(errors).length) return;
 
-    this.store.save({
+    const updated: TaxseerFiler = {
       ...f,
       name: f.name.trim(),
       city: f.city.trim(),
       address: f.address.trim(),
       warning: undefined,
-    });
+    };
 
-    this.closeEdit();
-    this.toast(`${f.name.trim()} updated`);
+    this.filerService.update(updated.id, updated).subscribe(saved => {
+      this.filerData.set(saved);
+      this.store.save(saved);
+      this.closeEdit();
+      this.toast(`${saved.name} updated`);
+    });
   }
 
   /* ---------- exports ---------- */

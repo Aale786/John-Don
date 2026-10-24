@@ -1,5 +1,5 @@
 ﻿import { CommonModule, NgClass } from '@angular/common';
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -13,6 +13,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { US_STATE_NAMES, US_STATES } from '../../data/taxseer-filers.data';
+import { FilerService } from '../../../../core/api/filer.service';
+import { RecipientService } from '../../../../core/api/recipient.service';
 import {
   NecAmountsComponent,
   NecAmountRow,
@@ -144,8 +146,10 @@ type ResumeItem = {
     ],
     templateUrl: './dashboard.html',
 })
-export class TaxseerDashboard {
+export class TaxseerDashboard implements OnInit {
   private readonly router = inject(Router);
+  private readonly filerService = inject(FilerService);
+  private readonly recipientService = inject(RecipientService);
 
   cartCount = 52;
   walletBalance = 100;
@@ -196,8 +200,7 @@ export class TaxseerDashboard {
 
     this.startFiling(
       filing,
-      Number.isInteger(filerId) &&
-        this.filers.some(filer => filer.id === filerId)
+      Number.isInteger(filerId) && filerId > 0
         ? filerId
         : undefined
     );
@@ -234,266 +237,10 @@ export class TaxseerDashboard {
     }
   ];
 
-  readonly filers: Filer[] = [
-    {
-      id: 1,
-      name: 'Tech International Corporation',
-      ein: '111111111',
-      address: '200 Trafalgar Square',
-      city: 'Gaithersburg',
-      state: 'MD',
-      zip: '20878',
-      email: 'tac_manoj@yahoo.com',
-      stateNo: 'MD 11111111',
-      forms: ['1099-NEC', '1099-MISC'],
-      recent: 1,
-      pending: 1,
-      filed: 29,
-      w9Total: 5,
-      w9Received: 4,
-      w9Waiting: 1
-    },
-    {
-      id: 9,
-      name: 'Avi Enterprises',
-      ein: '101010101',
-      address: '9 Lakeside Dr',
-      city: 'Columbia',
-      state: 'MD',
-      zip: '21044',
-      forms: ['1099-NEC'],
-      recent: 2,
-      pending: 13,
-      filed: 0,
-      w9Total: 2,
-      w9Received: 1,
-      w9Waiting: 1
-    },
-    {
-      id: 6,
-      name: 'Precise Technologies Inc',
-      ein: '666666666',
-      address: '123 Market St',
-      city: 'Rockville',
-      state: 'MD',
-      zip: '20850',
-      forms: ['1095-C'],
-      recent: 3,
-      pending: 40,
-      filed: 0,
-      w9Total: 2,
-      w9Received: 0,
-      w9Waiting: 2
-    },
-    {
-      id: 2,
-      name: 'Maryland Trucking Company',
-      ein: '222222222',
-      address: '100 Market Street',
-      city: 'Gaithersburg',
-      state: 'MD',
-      zip: '20878',
-      forms: ['1099-NEC', 'W-2'],
-      pending: 0,
-      filed: 60,
-      w9Total: 1,
-      w9Received: 0,
-      w9Waiting: 1
-    },
-    {
-      id: 3,
-      name: 'Virginia Technologies',
-      ein: '333333333',
-      address: '100 Blue Silk Lane',
-      city: 'Rockville',
-      state: 'MD',
-      zip: '20850',
-      forms: [],
-      pending: 0,
-      filed: 0,
-      w9Total: 0,
-      w9Received: 0,
-      w9Waiting: 0
-    },
-    {
-      id: 4,
-      name: 'New York Accounting',
-      ein: '444444444',
-      address: '10 Park St',
-      city: 'New York',
-      state: 'NY',
-      zip: '20878',
-      forms: ['1099-NEC', '1099-INT'],
-      pending: 0,
-      filed: 4,
-      w9Total: 0,
-      w9Received: 0,
-      w9Waiting: 0,
-      warn: 'ZIP 20878 is not a New York ZIP. Check the filer address.'
-    },
-    {
-      id: 5,
-      name: 'Dillon Consulting',
-      ein: '555555555',
-      address: '1 Market St',
-      city: 'Rockville',
-      state: 'MD',
-      zip: '20850',
-      forms: ['1099-NEC'],
-      pending: 0,
-      filed: 0,
-      w9Total: 0,
-      w9Received: 0,
-      w9Waiting: 0
-    },
-    {
-      id: 7,
-      name: 'Infinite Technologies',
-      ein: '777777777',
-      address: '111 King James Way',
-      city: 'Bethesda',
-      state: 'MD',
-      zip: '20831',
-      forms: ['1099-NEC', '1099-MISC'],
-      pending: 0,
-      filed: 31,
-      w9Total: 0,
-      w9Received: 0,
-      w9Waiting: 0
-    },
-    {
-      id: 8,
-      name: 'Nextlinx Technologies Inc',
-      ein: '999999999',
-      address: '1 Rayfield Drive',
-      city: 'Germantown',
-      state: 'MD',
-      zip: '20877',
-      forms: ['W-2'],
-      pending: 0,
-      filed: 128,
-      w9Total: 0,
-      w9Received: 0,
-      w9Waiting: 0
-    }
-  ];
+  filers: Filer[] = [];
 
-  // Dummy recipient data
-  recipients: Recipient[] = [
-    {
-      id: 1,
-      filerId: 1,
-      name: 'Mark Waugh',
-      tin: '888222330',
-      type: 'SSN',
-      address: '101 Market St',
-      city: 'Rockville',
-      state: 'MD',
-      zip: '20850',
-      email: 'mark.waugh@example.com',
-      econsent: true,
-      w9: 'Requested',
-      pendingForm: true
-    },
-    {
-      id: 2,
-      filerId: 1,
-      name: 'Derek Randal',
-      tin: '111235678',
-      type: 'SSN',
-      address: '20 East Bank St',
-      city: '',
-      state: 'MENDOZA',
-      zip: '',
-      email: '',
-      econsent: false,
-      w9: 'Submitted'
-    },
-    {
-      id: 3,
-      filerId: 1,
-      name: 'Tariq Fateh',
-      tin: '88765878',
-      type: 'SSN',
-      address: '36 Market Street',
-      city: 'Gaithersburg',
-      state: 'MD',
-      zip: '20878',
-      email: '',
-      econsent: false,
-      w9: 'Not requested'
-    },
-    {
-      id: 4,
-      filerId: 1,
-      name: 'Priya Nair',
-      tin: '402119021',
-      type: 'SSN',
-      address: '55 Oak Ave',
-      city: 'San Jose',
-      state: 'CA',
-      zip: '95112',
-      email: 'priya.nair@example.com',
-      econsent: true,
-      w9: 'Submitted'
-    },
-    {
-      id: 5,
-      filerId: 1,
-      name: 'Hillside Legal Group PC',
-      tin: '521234102',
-      type: 'EIN',
-      address: '1 Court Sq',
-      city: 'Towson',
-      state: 'MD',
-      zip: '21204',
-      email: 'billing@hillsidelegal.example',
-      econsent: false,
-      w9: 'Submitted'
-    },
-    {
-      id: 6,
-      filerId: 1,
-      name: 'Rockcreek Office LLC',
-      tin: '540987730',
-      type: 'EIN',
-      address: '800 Rock Creek Pkwy',
-      city: 'Arlington',
-      state: 'VA',
-      zip: '22201',
-      email: '',
-      econsent: false,
-      w9: 'Submitted'
-    },
-    {
-      id: 7,
-      filerId: 9,
-      name: 'Jose Ortega',
-      tin: '219554411',
-      type: 'SSN',
-      address: '4 Elm Ct',
-      city: 'Laurel',
-      state: 'MD',
-      zip: '20707',
-      email: '',
-      econsent: false,
-      w9: 'Requested'
-    },
-    {
-      id: 8,
-      filerId: 9,
-      name: 'Blue Ridge Couriers',
-      tin: '271117654',
-      type: 'EIN',
-      address: '77 Route 1',
-      city: 'Elkridge',
-      state: 'MD',
-      zip: '21075',
-      email: '',
-      econsent: false,
-      w9: 'Submitted'
-    }
-  ];
+  // Recipient data loaded from API when a filer is selected
+  recipients: Recipient[] = [];
 
   readonly formGroups: FormGroup[] = [
     {
@@ -646,7 +393,78 @@ export class TaxseerDashboard {
     ['2nd TIN Notice (Y/N)', false]
   ];
 
-  // Search and filter filers
+  ngOnInit(): void {
+    this.loadFilers();
+  }
+
+  private loadFilers(): void {
+    const q = this.filerSearch.trim();
+    if (q) {
+      this.filerService.search(q).subscribe(data => this.filers = this.mapFilersFromApi(data));
+    } else {
+      this.filerService.getAll().subscribe(data => this.filers = this.mapFilersFromApi(data));
+    }
+  }
+
+  /** Map TaxseerFiler (API shape) to the dashboard-local Filer shape */
+  private mapFilersFromApi(data: any[]): Filer[] {
+    return data.map(f => ({
+      id: f.id,
+      name: f.name,
+      ein: f.ein,
+      address: f.address,
+      address2: f.address2,
+      city: f.city,
+      state: f.state,
+      zip: f.zip,
+      phone: f.phone,
+      email: f.email,
+      stateNo: f.stateId,
+      forms: f.formsUsed ?? [],
+      pending: f.pending ?? 0,
+      filed: f.filed ?? 0,
+      w9Total: f.w9Total ?? 0,
+      w9Received: f.w9Received ?? 0,
+      w9Waiting: (f.w9Required ?? 0) - (f.w9Received ?? 0),
+      warn: f.warning,
+    } as Filer));
+  }
+
+  private loadRecipients(filerId: number): void {
+    const q = this.recipientSearch.trim();
+    if (q) {
+      this.recipientService.search(filerId, q).subscribe(data => {
+        this.recipients = this.mapRecipientsFromApi(data);
+      });
+    } else {
+      this.recipientService.getByFiler(filerId).subscribe(data => {
+        this.recipients = this.mapRecipientsFromApi(data);
+      });
+    }
+  }
+
+  /** Map FilerRecipient (API shape) to the dashboard-local Recipient shape */
+  private mapRecipientsFromApi(data: any[]): Recipient[] {
+    return data.map(r => ({
+      id: Number(r.id),
+      filerId: r.filerId,
+      name: r.name,
+      tin: r.tin,
+      type: (r.type as TinType) ?? 'SSN',
+      address: r.address,
+      city: r.city,
+      state: r.state,
+      zip: r.zip,
+      email: r.email ?? '',
+      econsent: r.econsent ?? false,
+      w9: r.w9 ?? 'Not requested',
+      selected: false,
+    } as Recipient));
+  }
+
+
+  // Search and filter filers — filters locally against already-loaded list;
+  // API search is triggered via onFilerSearchChange() called from the template.
   get filteredFilers(): Filer[] {
     const query = this.filerSearch
       .toLowerCase()
@@ -659,6 +477,10 @@ export class TaxseerDashboard {
         .replace(/-/g, '')
         .includes(query)
     );
+  }
+
+  onFilerSearchChange(): void {
+    this.loadFilers();
   }
 
   // Currently selected filer
@@ -1273,6 +1095,11 @@ export class TaxseerDashboard {
       recipient.selected = false;
     });
 
+    // Load recipients for pre-selected filer
+    if (filerId != null) {
+      this.loadRecipients(filerId);
+    }
+
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
@@ -1301,6 +1128,9 @@ export class TaxseerDashboard {
     this.recipients.forEach(recipient => {
       recipient.selected = false;
     });
+
+    // Load recipients for the selected filer from the API
+    this.loadRecipients(id);
   }
 
   // Enter on the filer search takes the top match, like the prototype
