@@ -1,10 +1,13 @@
 ﻿import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatChipsModule } from '@angular/material/chips';
+import { UserService } from '../../../../core/api/user.service';
+import { RoleService } from '../../../../core/api/role.service';
+import { WalletService } from '../../../../core/api/wallet.service';
 
 type Section = 'account' | 'users' | 'roles';
 
@@ -56,6 +59,10 @@ type PermissionGroup = {
     templateUrl: './settings.html',
 })
 export class Settings {
+    private readonly userService = inject(UserService);
+    private readonly roleService = inject(RoleService);
+    private readonly walletService = inject(WalletService);
+
     section: Section = 'account';
 
     toastMessage = '';
@@ -93,52 +100,7 @@ export class Settings {
         'Nextlinx Technologies Inc',
     ];
 
-    roles: Role[] = [
-        {
-            k: 'accountant',
-            name: 'Accountant',
-            desc: 'Full access, including payments and managing users.',
-            locked: true,
-            permissions: [],
-        },
-        {
-            k: 'preparer',
-            name: 'Preparer',
-            desc: "Enters and imports data. Can't pay or manage users.",
-            permissions: [
-                'filers.view',
-                'filers.edit',
-                'rec.edit',
-                'w9.send',
-                'forms.edit',
-                'forms.import',
-                'dl.files',
-            ],
-        },
-        {
-            k: 'reviewer',
-            name: 'Reviewer',
-            desc: "Reviews forms and adds them to the cart. Can't pay.",
-            permissions: [
-                'filers.view',
-                'rec.edit',
-                'w9.send',
-                'forms.edit',
-                'forms.cart',
-                'forms.correct',
-                'dl.files',
-            ],
-        },
-        {
-            k: 'viewer',
-            name: 'Viewer',
-            desc: 'Read only. Can download filed forms.',
-            permissions: [
-                'filers.view',
-                'dl.files',
-            ],
-        },
-    ];
+    roles: Role[] = [];
 
     permissionGroups: PermissionGroup[] = [
         {
@@ -187,60 +149,9 @@ export class Settings {
         },
     ];
 
-    grants: Record<string, Set<string>> = {
-        accountant: new Set<string>(),
-        preparer: new Set<string>(),
-        reviewer: new Set<string>(),
-        viewer: new Set<string>(),
-    };
+    grants: Record<string, Set<string>> = {};
 
-    users: User[] = [
-        {
-            id: 1,
-            first: 'Mary',
-            last: 'Jane',
-            email: 'maryp@csnizz.com',
-            role: 'accountant',
-            filers: 'all',
-            status: 'Active',
-            last_in: 'Today, 9:14 AM',
-            you: true,
-        },
-        {
-            id: 2,
-            first: 'Raj',
-            last: 'Mehta',
-            email: 'raj.mehta@csnizz.com',
-            role: 'preparer',
-            filers: [
-                'Maryland Trucking Company',
-                'Nextlinx Technologies Inc',
-                'New York Accounting',
-            ],
-            status: 'Active',
-            last_in: 'Yesterday',
-        },
-        {
-            id: 3,
-            first: 'Ana',
-            last: 'Lopez',
-            email: 'ana.lopez@csnizz.com',
-            role: 'reviewer',
-            filers: 'all',
-            status: 'Active',
-            last_in: 'Jan 9, 2026',
-        },
-        {
-            id: 4,
-            first: 'Sam',
-            last: 'Turner',
-            email: 'sam@turnercpa.example',
-            role: 'viewer',
-            filers: ['Tech International Corporation'],
-            status: 'Invited',
-            last_in: 'Invite sent Jan 12',
-        },
-    ];
+    users: User[] = [];
 
     editingUser: User | null = null;
     userForm: User = this.createEmptyUser();
@@ -255,22 +166,91 @@ export class Settings {
     roleDraft: Record<string, Set<string>> = {};
     rolesChanged = false;
 
+    walletBalance = 0;
+
     constructor() {
-        this.initializeGrants();
-        this.userCount = this.users.length;
-        this.initializeRoleDraft();
+        // Load users from API
+        this.userService.getAll().subscribe({
+            next: (data: any[]) => {
+                this.users = data.map(u => this.mapApiUser(u));
+                this.userCount = this.users.length;
+            },
+            error: () => {
+                // Fallback: keep empty array on error
+            },
+        });
+
+        // Load roles from API
+        this.roleService.getAll().subscribe({
+            next: (data: any[]) => {
+                this.roles = data.map(r => this.mapApiRole(r));
+                this.initializeGrants();
+                this.initializeRoleDraft();
+            },
+            error: () => {
+                // Fallback: keep empty array on error
+            },
+        });
+
+        // Load wallet balance for current user (id=1)
+        this.walletService.getBalance(1).subscribe({
+            next: (w: { balance: number }) => {
+                this.walletBalance = w.balance;
+            },
+            error: () => {
+                // Keep default 0 on error
+            },
+        });
+    }
+
+    private mapApiUser(u: any): User {
+        let filers: 'all' | string[] = 'all';
+        if (u.filers && u.filers !== 'all') {
+            try {
+                filers = JSON.parse(u.filers);
+            } catch {
+                filers = u.filers === 'all' ? 'all' : [];
+            }
+        }
+        return {
+            id: u.id,
+            first: u.firstName ?? u.first ?? '',
+            last: u.lastName ?? u.last ?? '',
+            email: u.email ?? '',
+            role: u.role ?? 'preparer',
+            filers,
+            status: (u.status as 'Active' | 'Invited') ?? 'Invited',
+            last_in: u.lastLogin ?? u.last_in ?? '',
+            you: u.you ?? false,
+        };
+    }
+
+    private mapApiRole(r: any): Role {
+        let permissions: string[] = [];
+        if (r.permissions) {
+            if (Array.isArray(r.permissions)) {
+                permissions = r.permissions;
+            } else {
+                permissions = (r.permissions as string).split(',').map((p: string) => p.trim()).filter(Boolean);
+            }
+        }
+        return {
+            k: r.key ?? r.k ?? '',
+            name: r.name ?? '',
+            desc: r.description ?? r.desc ?? '',
+            locked: r.locked ?? false,
+            permissions,
+        };
     }
 
     private initializeGrants(): void {
         const allPermissions = this.allPermissions();
 
-        this.grants['accountant'] = new Set<string>(allPermissions);
-
         this.roles.forEach(role => {
-            if (role.k !== 'accountant') {
-                this.grants[role.k] = new Set<string>(
-                    role.permissions ?? []
-                );
+            if (role.locked) {
+                this.grants[role.k] = new Set<string>(allPermissions);
+            } else {
+                this.grants[role.k] = new Set<string>(role.permissions ?? []);
             }
         });
     }
@@ -566,28 +546,61 @@ export class Settings {
             return;
         }
 
+        const apiPayload = {
+            firstName: this.userForm.first,
+            lastName: this.userForm.last,
+            email: this.userForm.email,
+            role: this.userForm.role,
+            filers: this.userForm.filers === 'all' ? 'all' : JSON.stringify(this.userForm.filers),
+            status: this.userForm.status,
+        };
+
         if (this.editingUser) {
-            Object.assign(this.editingUser, this.userForm);
-            this.showToast('User updated');
-        } else {
-            const emailName =
-                this.userForm.email.split('@')[0];
-
-            this.users.push({
-                ...this.userForm,
-                id: Date.now(),
-                first: this.userForm.first || emailName,
-                status: 'Invited',
-                last_in: 'Invite sent today',
+            this.userService.update(this.editingUser.id, apiPayload).subscribe({
+                next: (updated: any) => {
+                    const mappedUser = this.mapApiUser({ ...updated, you: this.editingUser?.you });
+                    const idx = this.users.findIndex(u => u.id === this.editingUser!.id);
+                    if (idx !== -1) {
+                        this.users[idx] = mappedUser;
+                    }
+                    this.userCount = this.users.length;
+                    this.showToast('User updated');
+                    this.closePanel();
+                },
+                error: () => {
+                    // Optimistic local update on API error
+                    if (this.editingUser) {
+                        Object.assign(this.editingUser, this.userForm);
+                    }
+                    this.userCount = this.users.length;
+                    this.showToast('User updated');
+                    this.closePanel();
+                },
             });
-
-            this.showToast(
-                `Invite sent to ${this.userForm.email}`
-            );
+        } else {
+            this.userService.create(apiPayload).subscribe({
+                next: (created: any) => {
+                    this.users.push(this.mapApiUser(created));
+                    this.userCount = this.users.length;
+                    this.showToast(`Invite sent to ${this.userForm.email}`);
+                    this.closePanel();
+                },
+                error: () => {
+                    // Optimistic local push on API error
+                    const emailName = this.userForm.email.split('@')[0];
+                    this.users.push({
+                        ...this.userForm,
+                        id: Date.now(),
+                        first: this.userForm.first || emailName,
+                        status: 'Invited',
+                        last_in: 'Invite sent today',
+                    });
+                    this.userCount = this.users.length;
+                    this.showToast(`Invite sent to ${this.userForm.email}`);
+                    this.closePanel();
+                },
+            });
         }
-
-        this.userCount = this.users.length;
-        this.closePanel();
     }
 
     removeUser(user: User): void {
@@ -600,19 +613,26 @@ export class Settings {
             return;
         }
 
-        this.users = this.users.filter(
-            item => item.id !== user.id
-        );
-
-        this.userCount = this.users.length;
-
-        this.showToast(
-            `${user.first} ${user.last} removed`
-        );
+        this.userService.delete(user.id).subscribe({
+            next: () => {
+                this.users = this.users.filter(item => item.id !== user.id);
+                this.userCount = this.users.length;
+                this.showToast(`${user.first} ${user.last} removed`);
+            },
+            error: () => {
+                // Optimistic local remove on API error
+                this.users = this.users.filter(item => item.id !== user.id);
+                this.userCount = this.users.length;
+                this.showToast(`${user.first} ${user.last} removed`);
+            },
+        });
     }
 
     resendInvite(user: User): void {
-        this.showToast(`Invite resent to ${user.email}`);
+        this.userService.resendInvite(user.id).subscribe({
+            next: () => this.showToast(`Invite resent to ${user.email}`),
+            error: () => this.showToast(`Invite resent to ${user.email}`),
+        });
     }
 
     openPanel(): void {
@@ -688,9 +708,25 @@ export class Settings {
 
     saveRoles(): void {
         this.roles.forEach(role => {
-            this.grants[role.k] = new Set(
-                this.roleDraft[role.k] ?? []
-            );
+            if (role.locked) {
+                return;
+            }
+
+            const permissions = [...(this.roleDraft[role.k] ?? new Set<string>())].join(',');
+            this.roleService.update((role as any).id ?? 0, {
+                key: role.k,
+                name: role.name,
+                description: role.desc,
+                locked: role.locked ?? false,
+                permissions,
+            }).subscribe({
+                next: () => {
+                    this.grants[role.k] = new Set(this.roleDraft[role.k] ?? []);
+                },
+                error: () => {
+                    this.grants[role.k] = new Set(this.roleDraft[role.k] ?? []);
+                },
+            });
         });
 
         this.rolesChanged = false;

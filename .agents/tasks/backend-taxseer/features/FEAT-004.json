@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "Wire the Settings page (account, users, roles, wallet) to real API calls. Seed the database with the existing dummy data so the application works end-to-end without an empty screen. Depends on FEAT-002 (services must exist). Independent of FEAT-003.",
+  "status": "completed",
+  "steps": [
+    "Step 1 — Wire the Settings page (D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\settings\\settings.ts).\n  - Inject UserService, RoleService, WalletService.\n  - Replace in-memory `users: User[]` array with `users: User[] = []`; load in constructor via userService.getAll().subscribe(data => this.users = data).\n  - Replace in-memory `roles: Role[]` array with `roles: Role[] = []`; load via roleService.getAll().subscribe(data => this.roles = data).\n  - Replace `walletBalance` (currently a hard-coded 100 in dashboard.ts top nav) with a load from walletService.getBalance(currentUserId).subscribe(b => this.walletBalance = b.balance). Pass the balance to the top nav via a shared signal or service.\n  - saveUser(): after validation, call userService.create(userForm).subscribe(...) for invite, or userService.update(editingUser.id, userForm).subscribe(...) for edit.\n  - removeUser(user): call userService.delete(user.id).subscribe(...).\n  - resendInvite(user): call userService.resendInvite(user.id).subscribe(...).\n  - saveRoles(): call roleService.update(role.id, {...}).subscribe(...) for each changed role.\n  - DO NOT touch settings.html.",
+
+    "Step 2 — Create a DB seeder component for initial data. Create D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\src\\main\\java\\com\\taxseer\\config\\DataSeeder.java as a @Component that implements ApplicationRunner. Annotate with @Profile('!test') so it doesn't run in test context. In the run() method, use all injected repositories to check if data already exists (if (filerRepository.count().block() > 0) return;) and if empty, save the seed filers, recipients, filings, and orders that match the dummy data in the frontend. Seed exactly: the 9 filers from TAXSEER_FILERS, their recipients from FILER_RECIPIENTS, key filings from FILER_FILINGS (about 10 representative ones), and the orders from TAXSEER_ORDERS. This provides a working demo without empty screens.",
+
+    "Step 3 — Wire the wallet balance display in the top nav. In D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\layout\\taxseer-top-nav.ts, inject WalletService and add a walletBalance signal. Load in constructor via walletService.getBalance(1).subscribe(w => this.walletBalance.set(w.balance)). In taxseer-top-nav.html, replace the hard-coded balance display with {{ walletBalance() }}. DO NOT touch taxseer-top-nav.scss.",
+
+    "Step 4 — Final integration build. Run `npm run build` from D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse- and `.\\mvnw.cmd compile` from D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend. Both must succeed. Fix any remaining TypeScript or Java compilation errors.",
+
+    "Step 5 — Update FEAT status files. Set status to 'completed' in FEAT-001.json through FEAT-004.json. Record in each 'findings' field any important observations for the convergence reviewer (e.g., 'DataSeeder seeds 9 filers + 8 recipients + 10 filings + 9 orders on first boot')."
+  ],
+  "acceptance_criteria": [
+    "`npm run build` exits with no TypeScript errors",
+    "`.\\mvnw.cmd compile` exits with BUILD SUCCESS",
+    "Settings page loads users and roles from API, not from hard-coded arrays",
+    "Wallet balance in top nav loads from API",
+    "DataSeeder.java exists and seeds the DB on first boot when tables are empty",
+    "No CSS, SCSS, or HTML files (except taxseer-top-nav.html for the balance binding) are modified"
+  ],
+  "verification": [
+    "Run `.\\mvnw.cmd compile` from D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend — expect BUILD SUCCESS",
+    "Run `npm run build` from D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse- — expect zero TypeScript errors",
+    "Run backend with `.\\mvnw.cmd spring-boot:run`, then `npm start` for frontend; navigate to http://localhost:4200/taxseer/dashboard — filers list populated from seeded DB data"
+  ],
+  "blocked_reason": null,
+  "findings": "All steps completed and both builds pass. Key findings: (1) DataSeeder seeds 9 filers + 8 recipients + 10 representative filings + 9 orders + 4 roles + 4 users + 1 wallet on first boot (uses reactive non-blocking count check via filerRepository.count()). (2) settings.ts: users and roles arrays start empty and are populated via UserService.getAll() / RoleService.getAll() in the constructor; wallet balance loaded via WalletService.getBalance(1). (3) mapApiUser() handles both firstName/lastName (API) and first/last (legacy) field names. (4) mapApiRole() handles both comma-separated string and array permissions from the API. (5) saveRoles() calls roleService.update() for each non-locked role; grants are updated optimistically. (6) taxseer-top-nav.ts now injects WalletService and exposes walletBalance signal (default 100); taxseer-top-nav.html replaced hard-coded $100.00 with ${{ walletBalance() }}. (7) taxseer-top-nav.scss was NOT touched. (8) settings.html was NOT touched. (9) Both .mvnw.cmd compile and npm run build exit with success."
+}
