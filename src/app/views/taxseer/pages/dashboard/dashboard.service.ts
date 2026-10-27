@@ -152,7 +152,10 @@ export class DashboardService {
 
   private readonly _doneCount = signal(0);
 
-  // Plain private fields (not signals)
+  // Internal-only, non-reactive cursor fields (intentionally NOT signals).
+  // These track which filer/recipient is being edited only for the
+  // saveFiler / saveRecipient create-vs-update branch; they never drive
+  // any template expression and therefore add no reactivity value.
   private panelFilerId: number | null = null;
   private panelRecipientId: number | null = null;
 

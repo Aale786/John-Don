@@ -1,5 +1,4 @@
-import { Component, HostListener, inject } from '@angular/core';
-import { NgClass } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,16 +11,11 @@ import { DashboardService } from '../../dashboard.service';
 @Component({
   selector: 'app-filer-recipient-panel',
   standalone: true,
-  imports: [NgClass, FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatRadioModule, MatCheckboxModule],
+  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatRadioModule, MatCheckboxModule],
   templateUrl: './filer-recipient-panel.html',
 })
 export class FilerRecipientPanelComponent {
   readonly ds = inject(DashboardService);
-
-  @HostListener('window:keydown.escape')
-  onEscapeKey(): void {
-    if (this.ds.panelOpen()) {
-      this.ds.closePanel();
-    }
-  }
+  // Global keyboard routing (Escape → closePanel / closeChooser) is handled
+  // by the parent TaxseerDashboard @HostListener so it is NOT duplicated here.
 }
