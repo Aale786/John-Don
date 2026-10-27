@@ -1,0 +1,180 @@
+<div class="sec-h">
+  <div>
+    <h2>Review before adding to cart</h2>
+    <p class="muted small mt-1">
+      {{ ds.currentFiler()?.name }}, EIN {{ ds.formatEin(ds.currentFiler()?.ein || '') }}.
+      {{ ds.selectedForm() }}, tax year {{ ds.taxYear() }}.
+      @if (ds.mode() === 'bulk' && ds.selectedFileName()) { From {{ ds.selectedFileName() }}. }
+    </p>
+  </div>
+
+  <button mat-button class="btn ghost small-btn" (click)="ds.notify('Downloading draft PDFs')">
+    Download draft PDFs
+  </button>
+</div>
+
+<!-- Stat Tiles -->
+<div class="review-top">
+  <div class="card stat">
+    <span class="muted small block">Forms</span>
+    <div class="v">{{ ds.formCount() }}</div>
+  </div>
+
+  <div class="card stat">
+    <span class="muted small block">Total Box 1</span>
+    <div class="v">
+      ${{ ds.mode() === 'bulk' ? ds.money(ds.bulkBox1()) : ds.money(ds.box1Total()) }}
+    </div>
+  </div>
+
+  <div class="card stat">
+    <span class="muted small block">Total federal withheld</span>
+    <div class="v">
+      ${{ ds.mode() === 'bulk' ? ds.money(ds.bulkBox4()) : ds.money(ds.box4Total()) }}
+    </div>
+  </div>
+
+  <div class="card stat">
+    <span class="muted small block">
+      {{ ds.mode() === 'bulk' ? 'Recipients' : 'State copies' }}
+    </span>
+    <div class="v">
+      {{ ds.mode() === 'bulk' ? ds.bulkNew() + ' new, ' + (ds.bulkToProcess() - ds.bulkNew()) + ' updated' : ds.stateCopies() }}
+    </div>
+  </div>
+</div>
+
+<!-- Manual Review Table -->
+@if (ds.mode() === 'manual') {
+<div
+  class="card table-scroll">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Recipient</th>
+        <th>TIN</th>
+        <th class="text-right">Box 1</th>
+        <th class="text-right">Box 4</th>
+        <th>Box 6</th>
+        <th>Recipient copy</th>
+        <th>Notes</th>
+        <th class="text-right w-20"></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (row of ds.amountRowsToUse(); track row.id) {
+      <tr class="hover:bg-(--hover) transition-colors">
+        <td>
+          <strong>{{ row.name }}</strong>
+        </td>
+        <td>{{ row.tin }}</td>
+        <td class="text-right">${{ ds.money(row.box1) }}</td>
+        <td class="text-right">{{ row.box4 ? '$' + ds.money(row.box4) : '–' }}</td>
+        <td>{{ row.state ? row.state + ' ' + (row.payerStateNumber || '') : '–' }}</td>
+        <td>
+          <mat-form-field class="w-42.5" appearance="outline" subscriptSizing="dynamic">
+            <mat-select [ngModel]="ds.copyFor(row)" (ngModelChange)="ds.setCopy(row.id, $event)"
+              [attr.aria-label]="'Copy delivery for ' + row.name">
+              <mat-option value="email" [disabled]="!ds.canEmailRow(row)">Email{{ ds.canEmailRow(row) ? '' : ' (no
+                consent)' }}</mat-option>
+              <mat-option value="mail">Print and mail</mat-option>
+              <mat-option value="self">I'll deliver it</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </td>
+        <td>
+          @if (ds.amountRowNotes(row).length) {
+          <span class="note text-(--amber)">{{ ds.amountRowNotes(row).join(' ') }}</span>
+          } @else {
+          <mat-chip class="pill success-pill">Ready</mat-chip>
+          }
+        </td>
+        <td class="text-right">
+          <button mat-stroked-button class="btn small-btn" (click)="ds.editAmountRow(row)">Edit</button>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+}
+
+<!-- Bulk Review Table -->
+@if (ds.mode() === 'bulk') {
+<div
+  class="card table-scroll">
+  <div class="delivery-bar">
+    <label for="bulkDelivery" >Recipient copies</label>
+    <mat-form-field class="w-[320px] max-sm:w-full" appearance="outline" subscriptSizing="dynamic">
+      <mat-select id="bulkDelivery" aria-label="Recipient copies" [ngModel]="ds.bulkDelivery()"
+        (ngModelChange)="ds.setBulkDelivery($event); ds.notify(ds.bulkDeliveryNote())">
+        <mat-option value="auto">Email where consented, otherwise print and mail</mat-option>
+        <mat-option value="mail">Print and mail all</mat-option>
+        <mat-option value="self">I'll deliver them</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <span class="muted small">{{ ds.bulkDeliveryNote() }}</span>
+  </div>
+
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th class="w-16">Row</th>
+        <th>Recipient</th>
+        <th>TIN</th>
+        <th class="text-right">Box 1</th>
+        <th class="text-right">Box 4</th>
+        <th>Copy</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of ds.reviewBulkRows(); track row.line) {
+      <tr class="hover:bg-(--hover) transition-colors">
+        <td>{{ row.line }}</td>
+        <td><strong>{{ row.name }}</strong></td>
+        <td>{{ ds.maskBulkTin(row) }}</td>
+        <td class="text-right">${{ row.box1 }}</td>
+        <td class="text-right">{{ row.box4 ? '$' + row.box4 : '–' }}</td>
+        <td>{{ ds.bulkCopyFor(row) }}</td>
+        <td>
+          @if (row.note) {
+          <mat-chip class="pill warning-pill">{{ row.note }}</mat-chip>
+          } @else {
+          <mat-chip class="pill success-pill">Ready</mat-chip>
+          }
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (ds.bulkToProcess() > ds.reviewBulkRows().length) {
+  <p class="muted small mt-3 p-2.5 border-t border-gray-200">
+    Showing {{ ds.reviewBulkRows().length }} of {{ ds.bulkToProcess() }}. Every form can be opened and edited later under
+    Pending forms.
+  </p>
+  }
+</div>
+}
+
+@if (ds.bulkSkipped() && ds.mode() === 'bulk') {
+<p class="note mt-3">
+  {{ ds.bulkSkipped() }} skipped row{{ ds.bulkSkipped() > 1 ? 's are' : ' is' }} not included. They're in the error report.
+</p>
+}
+
+<p class="muted small mt-2">
+  No Form 1096 is needed for e-filed returns. Forms stay pending until you check out.
+</p>
+
+<!-- AddToCartComponent — wires the review step to the real cart API -->
+@if (ds.mode() === 'manual') {
+<div class="mt-4">
+  <app-add-to-cart
+    [filings]="ds.completedFilings()"
+    (cartUpdated)="ds.onCartUpdated()">
+  </app-add-to-cart>
+</div>
+}

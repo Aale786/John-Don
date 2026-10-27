@@ -1,0 +1,179 @@
+<div class="sec-h">
+  <div>
+    <h2>Check {{ ds.selectedFileName() }}</h2>
+    <p class="muted small mt-1">
+      Row numbers match your spreadsheet. Fix a value here, or fix the file and upload it again.
+    </p>
+  </div>
+
+  <div class="row-actions flex flex-wrap gap-2">
+    <button mat-stroked-button class="btn small-btn" (click)="ds.notify('Error report downloaded (demo action).')">
+      Download error report
+    </button>
+    <button mat-stroked-button class="btn small-btn" (click)="ds.goStep(3)">
+      Upload corrected file
+    </button>
+    @if (ds.bulkErrors()) {
+    <button mat-stroked-button class="btn small-btn" (click)="ds.skipBulkErrors()">
+      Skip {{ ds.bulkErrors() }} row{{ ds.bulkErrors() > 1 ? 's' : '' }} with errors
+    </button>
+    }
+  </div>
+</div>
+
+<!-- Filter Tiles -->
+<div class="tiles" role="group" aria-label="Filter rows">
+  <button mat-button
+    class="tile transition-all"
+    [attr.aria-pressed]="ds.bulkFilter() === 'all'"
+    (click)="ds.useBulkFilter('all')">
+    <span class="v">{{ ds.bulkToProcess() }}</span>
+    <span class="muted small">rows to file{{ ds.bulkSkipped() ? ', ' + ds.bulkSkipped() +
+      ' skipped' : '' }}</span>
+  </button>
+
+  <button mat-button
+    class="tile transition-all"
+    [attr.aria-pressed]="ds.bulkFilter() === 'err'"
+    (click)="ds.useBulkFilter('err')">
+    <span class="v">{{ ds.bulkErrors() }}</span>
+    <span class="muted small">errors to fix</span>
+  </button>
+
+  <button mat-button
+    class="tile warn transition-all"
+    [attr.aria-pressed]="ds.bulkFilter() === 'note'"
+    (click)="ds.useBulkFilter('note')">
+    <span class="v">{{ ds.bulkNotes() }}</span>
+    <span class="muted small">notes to check</span>
+  </button>
+
+  <button mat-button
+    class="tile transition-all"
+    [attr.aria-pressed]="ds.bulkFilter() === 'new'"
+    (click)="ds.useBulkFilter('new')">
+    <span class="v">{{ ds.bulkNew() }}</span>
+    <span class="muted small">new recipients, {{ ds.bulkMatched() }} matched</span>
+  </button>
+</div>
+
+@if (ds.bulkSkipped()) {
+<div class="skipped-row mb-3">
+  <button mat-button class="btn link" (click)="ds.useBulkFilter('skip')">
+    Show {{ ds.bulkSkipped() }} skipped row{{ ds.bulkSkipped() > 1 ? 's' : '' }}
+  </button>
+</div>
+}
+
+<div
+  class="card table-scroll">
+  <table class="check-table">
+    <thead>
+      <tr>
+        <th class="w-16">Row</th>
+        <th>Recipient</th>
+        <th>TIN</th>
+        <th>State</th>
+        <th class="text-right">Box 1</th>
+        <th class="text-right">Box 4</th>
+        <th>Result</th>
+        <th class="text-right w-24"></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (row of ds.filteredBulkRows(); track row.line) {
+      <tr class="hover:bg-(--hover) transition-colors" [class.skipped]="row.skip">
+        <td>{{ row.line }}</td>
+        <td>
+          <strong>{{ row.name }}</strong>
+          <div class="small muted mt-0.5">
+            {{ row.address }}, {{ row.city }}
+          </div>
+          @if (!row.skip && row.error) {
+          <div class="issue text-(--red) mt-1">{{ row.error }}</div>
+          }
+          @if (!row.skip && !row.error && row.note) {
+          <div class="note text-(--amber) mt-1">{{ row.note }}</div>
+          }
+        </td>
+        <td>
+          @if (ds.bulkBad(row, 'tin')) {
+          <mat-form-field class="cell-fix" appearance="outline" subscriptSizing="dynamic">
+            <input matInput [ngModel]="row.tin" (ngModelChange)="ds.updateBulkValue(row, 'tin', $event)"
+              inputmode="numeric" [attr.aria-label]="'Fix TIN in row ' + row.line">
+          </mat-form-field>
+          } @else {
+          <span>{{ ds.maskBulkTin(row) }}</span>
+          }
+        </td>
+        <td>
+          @if (ds.bulkBad(row, 'state')) {
+          <mat-form-field class="cell-fix" appearance="outline" subscriptSizing="dynamic">
+            <mat-select [ngModel]="row.state" (ngModelChange)="ds.updateBulkValue(row, 'state', $event)"
+              [attr.aria-label]="'Fix state in row ' + row.line">
+              <mat-option value="">Choose</mat-option>
+              @for (state of ds.stateOptions; track state[0]) {
+              <mat-option [value]="state[0]">{{ state[0] }} · {{ state[1] }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          } @else {
+          <span>{{ row.state }}</span>
+          }
+        </td>
+        <td class="text-right">
+          @if (ds.bulkBad(row, 'box1')) {
+          <mat-form-field class="cell-fix text-right" appearance="outline" subscriptSizing="dynamic">
+            <input matInput class="text-right" [ngModel]="row.box1"
+              (ngModelChange)="ds.updateBulkValue(row, 'box1', $event)" inputmode="decimal"
+              [attr.aria-label]="'Fix Box 1 in row ' + row.line">
+          </mat-form-field>
+          } @else {
+          <span>${{ row.box1 }}</span>
+          }
+        </td>
+        <td class="text-right">
+          @if (ds.bulkBad(row, 'box4')) {
+          <mat-form-field class="cell-fix text-right" appearance="outline" subscriptSizing="dynamic">
+            <input matInput class="text-right" [ngModel]="row.box4"
+              (ngModelChange)="ds.updateBulkValue(row, 'box4', $event)" inputmode="decimal"
+              [attr.aria-label]="'Fix Box 4 in row ' + row.line">
+          </mat-form-field>
+          } @else {
+          <span>{{ row.box4 ? '$' + row.box4 : '–' }}</span>
+          }
+        </td>
+        <td>
+          @if (row.skip) {
+          <mat-chip class="pill neutral-pill">Skipped</mat-chip>
+          } @else if (row.error) {
+          <mat-chip class="pill p-err">Fix</mat-chip>
+          } @else if (row.note) {
+          <mat-chip class="pill warning-pill">Check</mat-chip>
+          } @else {
+          <mat-chip class="pill success-pill">Ready</mat-chip>
+          }
+          <span class="muted small block mt-0.5">
+            {{ row.isNew ? 'New' : 'Matched' }}
+          </span>
+        </td>
+        <td class="text-right whitespace-nowrap">
+          <button mat-stroked-button class="btn small-btn" (click)="ds.toggleBulkSkip(row)">
+            {{ row.skip ? 'Include' : 'Skip' }}
+          </button>
+        </td>
+      </tr>
+      } @empty {
+      <tr>
+        <td colspan="8" class="empty">
+          Nothing here.
+          <button mat-stroked-button class="btn small-btn ml-2" (click)="ds.useBulkFilter('all')">
+            Show all rows
+          </button>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,375 @@
+<main class="page">
+
+  <!-- Header -->
+  <div class="head mb-(--sp-9)">
+    <div>
+      <h1>Good afternoon, Mary</h1>
+      <p>
+        Tax year 2025 filing season.
+        1099-NEC and W-2 are due in {{ ds.daysToFeb2() }} days.
+      </p>
+    </div>
+  </div>
+
+  <!-- Dashboard Top Section -->
+  <div class="dashboard-grid mt-1 grid grid-cols-1 gap-4 mb-4 lg:grid-cols-dashboard">
+
+    <!-- Continue where you left off -->
+    <section class="card [box-shadow:var(--sh-1)] lg:min-h-89">
+      <div class="card-heading pb-5">
+        <h2 class="text-lg font-semibold text-taxseer-ink">Continue where you left off</h2>
+        <span class="muted small">
+          Work saves as pending automatically
+        </span>
+      </div>
+
+      @for (item of ds.resumeItems; track item.id) {
+      <div
+        class="resume-row flex flex-wrap items-center gap-3.5 border-b border-taxseer-line last:border-b-0 sm:flex-nowrap px-3.5 py-4.5">
+        <div class="resume-content flex-1 min-w-0 max-sm:basis-full">
+          <div>
+            
+            <strong class="font-semibold">{{ item.name }}</strong>
+            <span class="muted">
+              · {{ item.form }} · {{ ds.taxYear() }}
+            </span>
+          </div>
+
+          <div class="small muted block mt-1">
+            {{ item.detail }}. {{ item.when }}
+          </div>
+
+          <div class="prog mt-1.5 overflow-hidden rounded-full bg-taxseer-prog"
+            [attr.aria-label]="item.done + ' of ' + item.total + ' complete'">
+            <span class="block h-full rounded-full bg-taxseer-navy transition-all duration-300"
+              [style.width.%]="item.total ? (item.done / item.total * 100) : 0">
+            </span>
+          </div>
+        </div>
+
+        <span class="small muted hidden whitespace-nowrap lg:block">
+          {{ item.done }} of {{ item.total }} ready
+        </span>
+
+        @if ($index === 0) {
+        <button mat-flat-button color="primary" class="btn small-btn primary max-sm:w-full mt-2 sm:mt-0"
+          (click)="ds.resume($index)">
+          Continue
+        </button>
+        } @else {
+        <button mat-stroked-button class="btn small-btn max-sm:w-full mt-2 sm:mt-0" (click)="ds.resume($index)">
+          Continue
+        </button>
+        }
+      </div>
+      }
+    </section>
+
+    <!-- Start a new filing -->
+    <section class="file-panel relative flex flex-col gap-3.5 overflow-hidden rounded-xl bg-taxseer-navy p-5 text-white shadow-sm">
+      <div>
+        <h2 class="text-xl font-semibold text-white">File new forms</h2>
+        <p class="mt-1 text-sm text-taxseer-blue-muted">
+          1099, W-2 and ACA for any filer on your account
+        </p>
+      </div>
+
+      <button mat-button
+        class="choice main mt-1 py-2"
+        (click)="ds.startFiling('manual')">
+        <span class="ci">
+          <img src="/assets/icons/edit-white.svg" alt="edit" width="22" height="22" />
+        </span>
+        <span>
+          <b>Manual entry</b>
+          <span class="d">
+            Pick recipients and type the amounts. Best for a handful of forms.
+          </span>
+        </span>
+        <span class="go">
+          <kbd>N</kbd>
+          <img src="/assets/icons/arrow-right-navy-22.svg" alt="arrow-right" width="18" height="18"
+            class="brightness-200" />
+        </span>
+      </button>
+
+      <button mat-button
+        class="choice alt py-3.5"
+        (click)="ds.startFiling('bulk')">
+        <span class="ci">
+          <img src="/assets/icons/spreadsheet-white.svg" alt="spreadsheet" width="22" height="22" />
+        </span>
+        <span>
+          <b>Bulk import</b>
+          <span class="d">
+            Upload the TaxSeer Excel template or your own file.
+          </span>
+        </span>
+        <span class="go">
+          <kbd>I</kbd>
+          <img src="/assets/icons/arrow-right-mist-22.svg" alt="arrow-right" width="18" height="18" />
+        </span>
+      </button>
+
+      <details class="templates relative z-10 mt-1 text-sm">
+        <summary class="cursor-pointer font-semibold text-taxseer-pale hover:underline">Download Excel
+          templates</summary>
+        <div class="template-grid grid grid-cols-4 gap-2 mt-3">
+          @for (form of ds.allFormOptions(); track form.code) {
+          @if (form.code !== '8809') {
+          <button mat-stroked-button
+            class="small-btn text-taxseer-navy-2 border-white/30! flex items-center justify-start gap-1.5 text-xs"
+            (click)="ds.downloadTemplate(form.code)">
+            <img src="/assets/icons/download-blue.svg" alt="download" width="14" height="14" class="brightness-200 text-red-400" />
+            {{ form.code }}
+          </button>
+          }
+          }
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <!-- Dashboard Summary Cards -->
+  <div class="three-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+    <!-- Needs attention -->
+    <section class="card shadow-sm">
+      <div class="card-heading pb-4">
+        <h2 class="text-lg font-semibold text-taxseer-ink">Needs attention</h2>
+      </div>
+
+      <button mat-button
+        class="attention flex h-auto min-h-0 w-full items-start gap-3.5 border-0 border-b border-taxseer-line bg-white text-left transition-colors last:border-0 hover:bg-taxseer-hover"
+        (click)="ds.notify('3 rejected forms need review')">
+        <b class="number danger min-w-8 text-(--fs-stat) leading-tight font-semibold">3</b>
+        <span class="grid min-w-0 gap-1">
+          <strong class="font-semibold text-taxseer-ink">Rejected by IRS / SSA</strong>
+          <small class="text-xs text-taxseer-muted">Maryland Trucking (1), Nextlinx (2)</small>
+        </span>
+      </button>
+
+      <button mat-button
+        class="attention flex h-auto min-h-0 w-full items-start gap-3.5 border-0 border-b border-taxseer-line bg-white text-left transition-colors last:border-0 hover:bg-taxseer-hover"
+        (click)="ds.notify('2 recipients will be rejected: 8-digit TIN, invalid state')">
+        <b class="number danger min-w-8 text-(--fs-stat) leading-tight font-semibold">2</b>
+        <span class="grid min-w-0 gap-1">
+          <strong class="font-semibold text-taxseer-ink">Recipients that will be rejected</strong>
+          <small class="text-xs text-taxseer-muted">8-digit TIN, invalid state</small>
+        </span>
+      </button>
+
+      <button mat-button
+        class="attention flex h-auto min-h-0 w-full items-start gap-3.5 border-0 bg-white text-left transition-colors hover:bg-taxseer-hover"
+        (click)="ds.notify(ds.totalWaitingW9() + ' W-9 requests unanswered')">
+        <b class="number warning min-w-8 leading-tight font-semibold text-taxseer-amber">{{
+          ds.totalWaitingW9() }}</b>
+        <span class="grid min-w-0 gap-1">
+          <strong class="font-semibold text-taxseer-ink">W-9 requests unanswered</strong>
+          <small class="text-xs text-taxseer-muted">Across 4 filers. Oldest sent Nov 4.</small>
+        </span>
+      </button>
+    </section>
+
+    <!-- Deadlines -->
+    <section class="card padded bg-white shadow-sm px-3.5 py-4.5">
+      <h2 class="border-b border-taxseer-line pb-3 text-lg font-semibold text-taxseer-ink">Deadlines</h2>
+
+      <div class="deadline mt-1 flex items-start justify-between gap-2.5 text-sm">
+        <span>
+          <b class="dl-date block text-taxseer-ink text-sm font-bold">Feb 2</b>
+          <span class="text-taxseer-muted">1099-NEC, W-2 and recipient copies</span>
+        </span>
+        <mat-chip class="pill warning-pill">{{ ds.daysToFeb2() }} days</mat-chip>
+      </div>
+
+      <div class="deadline mt-1 flex items-start justify-between gap-2.5 text-sm">
+        <span>
+          <b class="dl-date block text-taxseer-ink text-sm font-bold">Mar 31</b>
+          <span class="text-taxseer-muted">Other 1099s and ACA e-file</span>
+        </span>
+        <mat-chip class="pill neutral-pill">{{ ds.daysToMar31() }} days</mat-chip>
+      </div>
+    </section>
+
+    <!-- Ready to check out -->
+    <section
+      class="card padded flex flex-col justify-between bg-white px-3.5 py-4.5 shadow-sm">
+      <div>
+        <h2 class="border-b border-taxseer-line pb-3 text-lg font-semibold text-taxseer-ink">Ready to check out
+        </h2>
+        <div class="cart-line mt-1 flex flex-wrap items-baseline gap-2">
+          <b class="cart-total font-semibold text-taxseer-ink">{{ ds.cartCount() }}</b>
+          <span class="text-sm text-taxseer-muted">forms in cart from 4 filers</span>
+          <p class="small muted mt-1 w-full text-xs text-taxseer-muted">
+            Wallet balance ${{ ds.walletBalance().toFixed(2) }}
+          </p>
+        </div>
+        <button mat-stroked-button class="btn small-btn review-cart w-fit mt-5 border border-gray-200" (click)="ds.notify('Cart opened')">
+          Review cart
+        </button>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- Filers Table -->
+  <section class="card filer-card shadow-sm mt-4">
+    <div class="card-heading filer-heading flex flex-wrap justify-between items-center gap-3 pb-3">
+      <h2 class="text-lg font-semibold text-taxseer-ink">Filers</h2>
+
+      <div class="search-actions flex flex-1 gap-2 justify-end">
+        
+        <input [ngModel]="ds.filerSearch()" (ngModelChange)="ds.setFilerSearch($event)" placeholder="Find a filer by name or EIN" aria-label="Find a filer" class="border border-gray-200 px-3 py-1 rounded-md bg-white w-sm">
+        
+
+        <button mat-stroked-button class="btn small-btn flex items-center gap-1.5 whitespace-nowrap border border-gray-200"
+          (click)="ds.openAddFiler()"> 
+          <img src="/assets/icons/plus-ink.svg" alt="plus" width="16" height="16" />
+          Add filer
+        </button>
+      </div>
+    </div>
+
+    <div class="table-scroll mt-2">
+      <table class="tbl">
+        <thead>
+          <tr class="border-b border-taxseer-line text-xs font-semibold text-taxseer-muted">
+            <th>Name / company</th>
+            <th>EIN</th>
+            <th>Forms used</th>
+            <th class="text-right">Pending</th>
+            <th class="text-right">Filed 2025</th>
+            <th>W-9s received</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (f of ds.filteredFilers(); track f.id) {
+          <tr class="transition-colors hover:bg-taxseer-hover">
+            <td>
+              <button type="button"
+                class="fname p-0! font-semibold text-taxseer-navy-2 hover:underline" (click)="ds.goFiler(f.id)">
+                {{ f.name }}
+              </button>
+              <small class="subline mt-0.5 block text-xs text-taxseer-muted">
+                {{ f.city }}, {{ f.state }}
+              </small>
+              @if (f.warn) {
+              <div
+                class="note mt-1">
+                {{ f.warn }}</div>
+              }
+            </td>
+            <td class="font-mono text-xs">{{ ds.formatEin(f.ein) }}</td>
+            <td class="text-xs">
+              @if (f.forms.length) {
+              {{ f.forms.join(', ') }}
+              } @else {
+              <span class="muted text-taxseer-muted">None yet</span>
+              }
+            </td>
+            <td class="text-right font-medium">{{ f.pending || '–' }}</td>
+            <td class="text-right font-medium">{{ f.filed || '–' }}</td>
+            <td>
+              @if (f.w9Total) {
+              <button mat-button class="btn link p-0! mr-2 text-xs text-taxseer-navy-2 hover:underline"
+                (click)="ds.goFilerRecipients(f.id)">
+                {{ f.w9Received }} of {{ f.w9Total }}
+              </button>
+              @if (f.w9Waiting) {
+              <mat-chip class="pill warning-pill">{{ f.w9Waiting }} waiting</mat-chip>
+              } @else {
+              <mat-chip class="pill success-pill">All in</mat-chip>
+              }
+              } @else {
+              <span class="muted text-xs text-taxseer-muted">No requests</span>
+              }
+            </td>
+            <td class="text-right whitespace-nowrap">
+              <button mat-button class="btn small-btn ghost mr-1!" [attr.aria-label]="'Edit ' + f.name"
+                (click)="ds.openEditFiler(f.id)">
+                <img src="/assets/icons/edit-ink.svg" alt="edit" width="16" height="16" />
+                Edit
+              </button>
+              <button mat-stroked-button class="btn small-btn border border-gray-200" (click)="ds.newFilingFor(f.id)">
+                <img src="/assets/icons/plus-ink.svg" alt="plus" width="16" height="16" />
+                New filing
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="7" class="empty text-center text-taxseer-muted">
+              No filer matches.
+              <button mat-stroked-button class="btn small-btn ml-2" (click)="ds.openAddFiler()">
+                Add filer
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- New Filing Chooser Modal -->
+@if (ds.chooserOpen()) {
+<div class="scrim fixed inset-0 bg-black/40 z-40" aria-label="Close new filing chooser" (click)="ds.closeChooser()"></div>
+
+<div
+  class="chooser w-full max-w-xl bg-(--paper) rounded-xl [box-shadow:var(--sh-4)] z-50 overflow-hidden"
+  role="dialog" aria-modal="true" aria-labelledby="chTitle">
+  <div class="ch-h flex justify-between items-center bg-(--navy) text-white p-4">
+    <div>
+      <h2 id="chTitle" class="text-xl font-semibold text-white">{{ ds.chooserTitle() }}</h2>
+      <div class="sub text-xs text-taxseer-blue-muted mt-0.5">{{ ds.chooserSub() }}</div>
+    </div>
+    <button mat-icon-button class="x text-white" type="button" aria-label="Close" (click)="ds.closeChooser()">
+      <img src="/assets/icons/close-white.svg" alt="close" width="15" height="15" />
+    </button>
+  </div>
+
+  <div class="ch-b p-5 space-y-3">
+    <button mat-button
+      class="choice main w-full flex items-start gap-3 p-3.5 rounded-lg border border-(--line) hover:bg-(--hover) text-left transition-colors py-4"
+      type="button" (click)="ds.startFromChooser('manual')">
+      <span class="ci flex-none w-9 h-9 rounded-lg bg-(--navy) grid place-items-center mt-0.5">
+        <img src="/assets/icons/edit-white.svg" alt="edit" width="22" height="22" />
+      </span>
+      <span class="flex-1 min-w-0">
+        <b class="block font-semibold text-(--ink)">Manual entry</b>
+        <span class="d block text-sm text-(--ink-3) mt-0.5">Pick recipients and type the amounts. Best for
+          a handful of forms.</span>
+      </span>
+      <span class="go flex items-center gap-1.5 flex-none mt-1">
+        <kbd>N</kbd>
+        <img src="/assets/icons/arrow-right-navy-22.svg" alt="arrow-right" width="18" height="18" />
+      </span>
+    </button>
+
+    <button mat-button
+      class="choice alt w-full flex items-start gap-3 p-3.5 rounded-lg border border-(--line) hover:bg-(--hover) text-left transition-colors py-4"
+      type="button" (click)="ds.startFromChooser('bulk')">
+      <span class="ci flex-none w-9 h-9 rounded-lg bg-(--blue-tint) grid place-items-center mt-0.5">
+        <img src="/assets/icons/spreadsheet-navy.svg" alt="spreadsheet" width="22" height="22" />
+      </span>
+      <span class="flex-1 min-w-0">
+        <b class="block font-semibold text-(--ink)">Bulk import</b>
+        <span class="d block text-sm text-(--ink-3) mt-0.5">Upload the TaxSeer Excel template or your own
+          file.</span>
+      </span>
+      <span class="go flex items-center gap-1.5 flex-none mt-1">
+        <kbd>I</kbd>
+        <img src="/assets/icons/arrow-right-navy-22.svg" alt="arrow-right" width="18" height="18" />
+      </span>
+    </button>
+
+    <div class="foot text-xs text-(--ink-3) pt-2 text-center">
+      Next you'll choose the tax year and form. Templates for bulk import are on the upload step.
+    </div>
+  </div>
+</div>
+}

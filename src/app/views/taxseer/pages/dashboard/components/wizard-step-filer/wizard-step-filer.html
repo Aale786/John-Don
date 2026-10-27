@@ -1,0 +1,87 @@
+<div class="sec-h">
+  <div>
+    <h2>Who is filing?</h2>
+    <p class="muted small mt-1">
+      The payer or employer that appears on the form.
+    </p>
+  </div>
+
+  <div class="head-actions">
+      <input aria-label="Find filer" [ngModel]="ds.filerSearch()" (ngModelChange)="ds.setFilerSearch($event)" (keyup.enter)="ds.takeTopFilerMatch()" class="border border-gray-200 px-3 py-2 rounded-md bg-white w-sm"
+        placeholder="Type a name or EIN">
+
+    <button mat-stroked-button type="button" class="btn" (click)="ds.openAddFiler()">
+      <img src="/assets/icons/plus-ink.svg" alt="plus" width="16" height="16" />
+      Add filer
+    </button>
+  </div>
+</div>
+
+<div
+  class="card table-scroll">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th class="w-10"></th>
+        <th>Name / company</th>
+        <th>EIN</th>
+        <th>Address</th>
+        <th>Forms used before</th>
+        <th class="w-20"></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (group of ds.filerGroups(); track group.label) {
+      <tr class="group-label">
+        <td colspan="6">{{ group.label }}</td>
+      </tr>
+
+      @for (f of group.filers; track f.id) {
+      <tr class="radio-row cursor-pointer hover:bg-(--hover) transition-colors"
+        [class.sel]="ds.selectedFilerId() === f.id" (click)="ds.chooseFiler(f.id); ds.goStep(2)"
+        (keydown.enter)="ds.chooseFiler(f.id); ds.goStep(2)" tabindex="0">
+        <td (click)="$event.stopPropagation()">
+          <mat-radio-button name="wizardFiler" [value]="f.id" [attr.aria-label]="f.name"
+            [checked]="ds.selectedFilerId() === f.id" (click)="ds.chooseFiler(f.id)">
+          </mat-radio-button>
+        </td>
+        <td>
+          <strong>{{ f.name }}</strong>
+          @if (f.warn) {
+          <div
+            class="note mt-1">
+            {{ f.warn }}</div>
+          }
+        </td>
+        <td>{{ ds.formatEin(f.ein) }}</td>
+        <td class="small">
+          {{ f.address }}, {{ f.city }}, {{ f.state }} {{ f.zip }}
+        </td>
+        <td class="small">
+          {{ f.forms.join(', ') || 'None' }}
+        </td>
+        <td class="text-right">
+          <button mat-button type="button" class="btn small-btn ghost" [attr.aria-label]="'Edit ' + f.name"
+            (click)="$event.stopPropagation(); ds.openEditFiler(f.id)">
+            <img src="/assets/icons/edit-ink.svg" alt="edit" width="16" height="16" />
+            Edit
+          </button>
+        </td>
+      </tr>
+      }
+      }
+
+      @if (!ds.filteredFilers().length) {
+      <tr>
+        <td colspan="6" class="empty">
+          No filer matches "{{ ds.filerSearch() }}".
+          <button mat-stroked-button type="button" class="btn small-btn ml-2" (click)="ds.openAddFiler()">
+            Add it as a new filer
+          </button>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>

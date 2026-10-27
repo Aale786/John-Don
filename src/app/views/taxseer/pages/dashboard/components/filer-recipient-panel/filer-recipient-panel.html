@@ -1,0 +1,340 @@
+<div class="scrim fixed inset-0 bg-black/40 z-40 transition-opacity" [attr.aria-label]="'Close ' + ds.panelTitle()"
+  (click)="ds.closePanel()"></div>
+
+<aside class="panel show fixed top-0 right-0 bottom-0 w-full max-w-xl bg-white shadow-2xl z-50 flex flex-col overflow-hidden"
+  role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+  <header class="flex justify-between items-center p-4 border-b border-(--line)">
+    <h2 id="panelTitle" class="text-base font-bold text-(--ink)">{{ ds.panelTitle() }}</h2>
+    <button mat-icon-button type="button" aria-label="Close" (click)="ds.closePanel()">
+      <img src="/assets/icons/close-muted.svg" alt="close" width="16" height="16" />
+    </button>
+  </header>
+
+  <div class="pb flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+    @if (ds.panelKind() === 'filer') {
+    @if (ds.panelEditing() && ds.filerForm().warn) {
+    <div class="callout warn">{{ ds.filerForm().warn }}</div>
+    }
+
+    @if (ds.panelEditing() && (ds.filerForm().filed || ds.filerForm().pending)) {
+    <div class="callout">
+      Changes apply to pending forms and new filings. Forms already filed keep the details they were filed with; correct
+      those with a corrected return.
+    </div>
+    }
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Payer</legend>
+      <div>
+        <mat-label>Legal name</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="fl-name" [ngModel]="ds.filerForm().name" (ngModelChange)="ds.updateFilerField('name', $event)">
+        </mat-form-field>
+        @if (ds.panelErrors()['name']) {
+        <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['name'] }}</span>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <mat-label>EIN</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="fl-ein" inputmode="numeric" autocomplete="off" placeholder="12-3456789"
+              [ngModel]="ds.filerForm().ein" (ngModelChange)="ds.onPanelTin($event)">
+          </mat-form-field>
+          @if (ds.panelErrors()['ein']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['ein'] }}</span>
+          }
+        </div>
+
+        <div>
+          <mat-label>Phone</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="fl-phone" type="tel" [ngModel]="ds.filerForm().phone"
+              (ngModelChange)="ds.updateFilerField('phone', $event)">
+            <mat-hint>Printed on the payer box of 1099s.</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Address</legend>
+      <div>
+        <mat-label>Street address</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="fl-a1" autocomplete="address-line1" [ngModel]="ds.filerForm().address"
+            (ngModelChange)="ds.updateFilerField('address', $event)">
+        </mat-form-field>
+        @if (ds.panelErrors()['address']) {
+        <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['address'] }}</span>
+        }
+      </div>
+
+      <div>
+        <mat-label>Suite (optional)</mat-label>
+        <mat-form-field class=" w-full" appearance="outline">
+          <input matInput id="fl-a2" [ngModel]="ds.filerForm().address2" (ngModelChange)="ds.updateFilerField('address2', $event)">
+        </mat-form-field>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <mat-label>City</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="fl-city" [ngModel]="ds.filerForm().city" (ngModelChange)="ds.updateFilerField('city', $event)">
+          </mat-form-field>
+          @if (ds.panelErrors()['city']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['city'] }}</span>
+          }
+        </div>
+
+        <div>
+          <mat-label>State</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <mat-select id="fl-st" [ngModel]="ds.filerForm().state" (ngModelChange)="ds.updateFilerField('state', $event)">
+              <mat-option value="">Select</mat-option>
+              @for (state of ds.stateOptions; track state[0]) {
+              <mat-option [value]="state[0]">{{ state[0] }} · {{ state[1] }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          @if (ds.panelErrors()['state']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['state'] }}</span>
+          }
+        </div>
+
+        <div>
+          <mat-label>ZIP</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="fl-zip" inputmode="numeric" [ngModel]="ds.filerForm().zip"
+              (ngModelChange)="ds.updateFilerField('zip', $event)">
+          </mat-form-field>
+          @if (ds.panelErrors()['zip']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['zip'] }}</span>
+          }
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Filing details</legend>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <mat-label>Contact email</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="fl-email" type="email" [ngModel]="ds.filerForm().email"
+              (ngModelChange)="ds.updateFilerField('email', $event)">
+            <mat-hint>Receives filing status updates.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>Payer state ID</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="fl-stno" placeholder="MD 12345678" [ngModel]="ds.filerForm().stateNo"
+              (ngModelChange)="ds.updateFilerField('stateNo', $event)">
+            <mat-hint>Pre-fills Box 6 on state copies.</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+    </fieldset>
+    } @else {
+    @if (ds.panelRecipientIssues().length) {
+    <div class="callout warn">
+      Fix before filing: {{ ds.panelRecipientIssues().join(', ') }}.
+    </div>
+    }
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Taxpayer identification</legend>
+      <mat-radio-group class="radios flex gap-4" aria-label="TIN type" name="tinType" [value]="ds.recipientForm().type"
+        (change)="ds.updateRecipientForm(r => ({...r, type: $event.value}))">
+        @for (option of ds.tinTypes; track option[0]) {
+        <mat-radio-button [value]="option[0]">{{ option[1] }}</mat-radio-button>
+        }
+      </mat-radio-group>
+
+      @if (ds.isUnknownTin()) {
+      <div class="callout unknown-callout mt-2">
+        Save the recipient and send a W-9 request. The form stays pending until the TIN comes back, so nothing is filed
+        without one.
+      </div>
+      } @else {
+        <div>
+          <mat-label>{{ ds.panelTinLabel() }}</mat-label>
+          <mat-form-field class="tin-field w-full mt-2" appearance="outline">
+            <input matInput id="p-tin" inputmode="numeric" autocomplete="off" [placeholder]="ds.panelTinPlaceholder()"
+              [ngModel]="ds.recipientForm().tin" (ngModelChange)="ds.onPanelTin($event)">
+          </mat-form-field>
+          @if (ds.panelErrors()['tin']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['tin'] }}</span>
+          }
+        </div>
+      }
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Name</legend>
+      @if (ds.isBusinessRecipient()) {
+        <div>
+          <mat-label>Business name</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-biz" [ngModel]="ds.recipientForm().name" (ngModelChange)="ds.updateRecipientForm(r => ({...r, name: $event}))">
+            <mat-hint>Exactly as on the W-9 line 1. The IRS matches this name to the EIN.</mat-hint>
+          </mat-form-field>
+          @if (ds.panelErrors()['name']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['name'] }}</span>
+          }
+        </div>
+
+        <div>
+          <mat-label>Doing business as (optional)</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-dba" [ngModel]="ds.recipientForm().dba" (ngModelChange)="ds.updateRecipientForm(r => ({...r, dba: $event}))">
+          </mat-form-field>
+        </div>
+      } @else {
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <mat-label>First name</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-first" [ngModel]="ds.recipientForm().first" (ngModelChange)="ds.updateRecipientForm(r => ({...r, first: $event}))">
+          </mat-form-field>
+          @if (ds.panelErrors()['first']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['first'] }}</span>
+          }
+        </div>
+
+        <div>
+          <mat-label>Middle</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-mid" [ngModel]="ds.recipientForm().middle" (ngModelChange)="ds.updateRecipientForm(r => ({...r, middle: $event}))">
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-label>Last name</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-last" [ngModel]="ds.recipientForm().last" (ngModelChange)="ds.updateRecipientForm(r => ({...r, last: $event}))">
+          </mat-form-field>
+          @if (ds.panelErrors()['last']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['last'] }}</span>
+          }
+        </div>
+      </div>
+      }
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Mailing address</legend>
+      <div>
+        <mat-label>Country</mat-label>
+        <mat-form-field class=" w-full" appearance="outline">
+          <mat-select id="p-country" [ngModel]="ds.recipientForm().country" (ngModelChange)="ds.updateRecipientForm(r => ({...r, country: $event}))">
+            <mat-option value="US">United States</mat-option>
+            <mat-option value="FOREIGN">Outside the US</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div>
+        <mat-label>Street address</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="p-a1" autocomplete="address-line1" [ngModel]="ds.recipientForm().address"
+            (ngModelChange)="ds.updateRecipientForm(r => ({...r, address: $event}))">
+        </mat-form-field>
+        @if (ds.panelErrors()['address']) {
+        <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['address'] }}</span>
+        }
+      </div>
+
+      <div>
+        <mat-label>Apt, suite (optional)</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="p-a2" [ngModel]="ds.recipientForm().address2" (ngModelChange)="ds.updateRecipientForm(r => ({...r, address2: $event}))">
+        </mat-form-field>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <mat-label>City</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-city" [ngModel]="ds.recipientForm().city" (ngModelChange)="ds.updateRecipientForm(r => ({...r, city: $event}))">
+          </mat-form-field>
+          @if (ds.panelErrors()['city']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['city'] }}</span>
+          }
+        </div>
+
+        <div>
+          <mat-label>State</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <mat-select id="p-st" [ngModel]="ds.recipientForm().state" (ngModelChange)="ds.updateRecipientForm(r => ({...r, state: $event}))">
+              <mat-option value="">Select</mat-option>
+              @for (state of ds.stateOptions; track state[0]) {
+              <mat-option [value]="state[0]">{{ state[0] }} · {{ state[1] }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          @if (ds.panelErrors()['state']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['state'] }}</span>
+          }
+        </div>
+
+        <div>
+          <mat-label>ZIP</mat-label>
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-zip" inputmode="numeric" [ngModel]="ds.recipientForm().zip"
+              (ngModelChange)="ds.updateRecipientForm(r => ({...r, zip: $event}))">
+          </mat-form-field>
+          @if (ds.panelErrors()['zip']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ ds.panelErrors()['zip'] }}</span>
+          }
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
+      <legend class="text-xs font-semibold text-(--ink-3) px-1">Delivery</legend>
+      <div>
+        <mat-label>Email (optional)</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="p-email" type="email" [ngModel]="ds.recipientForm().email"
+            (ngModelChange)="ds.updateRecipientForm(r => ({...r, email: $event}))">
+          <mat-hint>Used for W-9 requests and electronic copies.</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <mat-checkbox class="chk consent-check" [ngModel]="ds.recipientForm().econsent"
+        (ngModelChange)="ds.updateRecipientForm(r => ({...r, econsent: $event}))">
+        Recipient consented to receive copies electronically
+      </mat-checkbox>
+    </fieldset>
+    }
+  </div>
+
+  <footer class="p-4 border-t border-(--line) flex flex-col gap-2 bg-(--soft)">
+    @if (ds.panelErrors()['_form']) {
+    <div class="callout warn text-sm w-full">{{ ds.panelErrors()['_form'] }}</div>
+    }
+    <div class="flex justify-end gap-2">
+      <button mat-stroked-button class="btn" type="button" (click)="ds.closePanel()">Cancel</button>
+
+      @if (ds.panelKind() === 'filer') {
+      <button mat-flat-button color="primary" class="btn primary" type="button" (click)="ds.saveFiler()">
+        {{ ds.panelEditing() ? 'Save changes' : 'Add filer' }}
+      </button>
+      } @else {
+      @if (!ds.panelEditing()) {
+      <button mat-stroked-button class="btn" type="button" (click)="ds.saveRecipient(true)">
+        Save and request W-9
+      </button>
+      }
+      <button mat-flat-button color="primary" class="btn primary" type="button" (click)="ds.saveRecipient()">
+        {{ ds.panelEditing() ? 'Save changes' : 'Save and select' }}
+      </button>
+      }
+    </div>
+  </footer>
+</aside>

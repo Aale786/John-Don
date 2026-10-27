@@ -1,0 +1,135 @@
+<!-- WIZARD VIEW — rendered when activeView() === 'wizard' -->
+@if (ds.activeView() === 'wizard') {
+<main class="wizard">
+
+  <!-- Wizard Header -->
+  <div class="wizard-header">
+    <div class="wizard-inner">
+
+      <div class="wizard-title">
+        <div>
+          <button mat-button class="back-link" (click)="ds.goDashboard()">
+            <img src="/assets/icons/arrow-left-blue.svg" alt="arrow-left" width="15" height="15" />
+            Dashboard
+          </button>
+          <h1>
+            New filing
+            <mat-chip class="mode-pill ">
+              {{ ds.mode() === 'manual' ? 'Manual entry' : 'Bulk import' }}
+            </mat-chip>
+          </h1>
+        </div>
+
+        <div class="title-actions">
+          @if (ds.step() >= 4) {
+          <span class="saved">
+            <img src="/assets/icons/check-green-25.svg" alt="check" width="14" height="14" />
+            Saved as pending
+          </span>
+          }
+          <button mat-stroked-button class="btn small-btn border border-gray-200 " (click)="ds.saveAndExit()">
+            Save and exit
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Steps -->
+      <nav mat-tab-nav-bar class="steps" [tabPanel]="stepPanel" mat-stretch-tabs="false"
+        aria-label="Filing steps">
+        @for (name of ds.stepNames(); track name; let i = $index) {
+        <a mat-tab-link class="step"
+          [class.current]="ds.step() === i + 1" [class.completed]="ds.step() > i + 1" [active]="ds.step() === i + 1"
+          [disabled]="ds.step() === i + 1 || !ds.canReach(i + 1)"
+          [attr.tabindex]="(ds.step() === i + 1 || !ds.canReach(i + 1)) ? -1 : 0"
+          [attr.aria-current]="ds.step() === i + 1 ? 'step' : null"
+          (click)="ds.canReach(i + 1) && ds.step() !== i + 1 ? ds.goStep(i + 1) : null"
+          (keydown.enter)="ds.canReach(i + 1) && ds.step() !== i + 1 ? ds.goStep(i + 1) : null"
+          (keydown.space)="$event.preventDefault(); ds.canReach(i + 1) && ds.step() !== i + 1 ? ds.goStep(i + 1) : null">
+
+          <!-- Step Indicator Dot -->
+          <span class="step-dot">
+            {{ ds.step() > i + 1 ? '✓' : i + 1 }}
+          </span>
+
+          <!-- Step Label & Summary -->
+          <span class="step-body">
+            <b class="step-label">{{ name }}</b>
+            <small class="step-summary">{{ ds.stepSummary(i + 1) }}</small>
+          </span>
+        </a>
+        }
+      </nav>
+    </div>
+  </div>
+
+  <mat-tab-nav-panel #stepPanel class="wizard-body">
+    @if (ds.step() === 1) { <app-wizard-step-filer /> }
+    @if (ds.step() === 2) { <app-wizard-step-form /> }
+    @if (ds.step() === 3 && ds.mode() === 'manual') { <app-wizard-step-recipients /> }
+    @if (ds.step() === 3 && ds.mode() === 'bulk') { <app-wizard-step-bulk-upload /> }
+    @if (ds.step() === 4 && ds.mode() === 'manual') { <app-wizard-step-amounts /> }
+    @if (ds.step() === 4 && ds.mode() === 'bulk') { <app-wizard-step-bulk-check /> }
+    @if (ds.step() === 5) { <app-wizard-step-review /> }
+  </mat-tab-nav-panel>
+
+  <!-- Wizard Fixed Footer -->
+  <footer class="wizard-footer">
+    <div class="wizard-inner">
+      <button mat-stroked-button class="btn" [style.visibility]="ds.step() === 1 ? 'hidden' : 'visible'"
+        (click)="ds.previousStep()">
+        Back
+      </button>
+
+      <span class="footer-message">{{ ds.footerMessage() }}</span>
+
+      <div class="footer-actions">
+        @if (ds.step() === 5) {
+        <button mat-stroked-button class="btn" (click)="ds.keepPending()">
+          Keep as pending
+        </button>
+        }
+        <button mat-flat-button color="primary" class="btn primary" [disabled]="!ds.nextEnabled()" (click)="ds.nextStep()">
+          {{ ds.nextLabel() }}
+        </button>
+      </div>
+    </div>
+  </footer>
+</main>
+}
+
+<!-- DONE VIEW — rendered when activeView() === 'done' -->
+@if (ds.activeView() === 'done') {
+<main class="page max-w-2xl mx-auto p-6 sm:p-12 text-center">
+  <div class="done-wrap flex flex-col items-center">
+    <div class="ic">
+      <img src="/assets/icons/check-green.svg" alt="check" width="28" height="28" />
+    </div>
+
+    <h1 class="text-(--fs-title) font-semibold">{{ ds.doneHeading() }}</h1>
+    <p class="muted text-sm text-(--ink-3) mt-2 max-w-md">{{ ds.doneDetail() }}</p>
+
+    <div class="done-actions flex flex-col gap-2.5 w-full max-w-xl mt-8">
+      <button  color="primary" class="btn primary flex items-center justify-between py-2.5"
+        (click)="ds.checkout()">
+        <span>Check out and e-file {{ ds.cartCount() }} forms</span>
+        <img src="/assets/icons/chevron-right-dark-22.svg" alt="arrow-right" width="16" height="16" style="filter: brightness(100);"/>
+      </button>
+
+      <button class="btn flex items-center justify-between py-2.5" (click)="ds.fileAgainSameFiler()">
+        <span>{{ ds.sameFilerLabel() }}</span>
+        <img src="/assets/icons/chevron-right-dark-22.svg" alt="arrow-right" width="16" height="16" style="filter: brightness(0);"/>
+      </button>
+
+      <button  class="btn flex items-center justify-between py-2.5" (click)="ds.fileAgainOtherFiler()">
+        <span>New filing for a different filer</span>
+        <img src="/assets/icons/chevron-right-dark-22.svg" alt="arrow-right" width="16" height="16" style="filter: brightness(0);"/>
+      </button>
+
+      <button class="btn ghost flex items-center justify-between! py-2.5" (click)="ds.goDashboard()">
+        <span>Back to dashboard</span>
+        <img src="/assets/icons/chevron-right-dark-22.svg" alt="arrow-right" width="16" height="16" style="filter: brightness(0);" />
+      </button>
+    </div>
+  </div>
+</main>
+}

@@ -1,0 +1,131 @@
+<div class="sec-h">
+  <div>
+    <h2>Upload {{ ds.selectedForm() }} data for {{ ds.currentFiler()?.name }}</h2>
+    <p class="muted small mt-1">
+      Use the TaxSeer template for this form, or your own Excel or CSV file. Columns are matched for you.
+    </p>
+  </div>
+  <button mat-button class="btn link" (click)="ds.toManualEntry()">
+    Only a few recipients? Enter them manually
+  </button>
+</div>
+
+<div class="upload-grid">
+  <div>
+    <!-- Drop Zone -->
+    <label
+      class="drop-zone">
+      <img src="/assets/icons/upload-blue-18.svg" alt="upload" class="w-9 h-9 object-contain" width="34"
+        height="34" />
+      <strong>Drop your file here or browse</strong>
+      <span class="muted small">.xlsx, .xls or .csv. One row per recipient.</span>
+      <input type="file" accept=".xlsx,.xls,.csv" class="mt-2 max-w-57.5"
+        (change)="ds.onFileSelected($event)">
+    </label>
+
+    <div class="sample-file mt-3">
+      <button mat-button class="btn ghost small-btn" (click)="ds.loadDemoFile()">
+        Use a sample file (demo)
+      </button>
+    </div>
+
+    @if (ds.selectedFileName()) {
+    <div class="card mt-3.5">
+      <div class="card-heading flex justify-between items-center">
+        <div>
+          <strong>{{ ds.selectedFileName() }}</strong>
+          <p class="muted small mt-0.5">
+            Sheet "{{ ds.selectedForm() }}", {{ ds.uploadedRows() }} rows after the header
+          </p>
+        </div>
+        <button mat-stroked-button type="button" class="btn small-btn" (click)="replaceFileInput.click()">
+          Replace file
+        </button>
+        <input #replaceFileInput type="file" accept=".xlsx,.xls,.csv" class="hidden"
+          (change)="ds.onFileSelected($event)">
+      </div>
+
+      <div class="table-scroll mt-3">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Column in your file</th>
+              <th>TaxSeer field</th>
+              <th class="w-24"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (column of ds.mappedColumns(); track column[0]) {
+            <tr>
+              <td>{{ column[0] }}</td>
+              <td>
+                <mat-form-field class="w-65 max-sm:w-full" appearance="outline" subscriptSizing="dynamic">
+                  <mat-select [value]="column[0]" [attr.aria-label]="'Field for ' + column[0]">
+                    <mat-option [value]="column[0]">{{ column[0] }}</mat-option>
+                    <mat-option value="Don't import">Don't import</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-chip class="pill p-ok">Matched</mat-chip>
+              </td>
+            </tr>
+            }
+            <tr>
+              <td>Internal notes</td>
+              <td>
+                <mat-form-field class="w-65 max-sm:w-full" appearance="outline" subscriptSizing="dynamic">
+                  <mat-select value="Don't import" aria-label="Field for Internal notes">
+                    <mat-option value="Don't import">Don't import</mat-option>
+                    <mat-option value="Account Number">Account Number</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-chip class="pill p-neutral">Ignored</mat-chip>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="muted small mt-3">
+        Columns left out of the file are treated as blank. Mapping is saved for {{ ds.currentFiler()?.name }}, so the
+        next file matches automatically.
+      </p>
+    </div>
+    }
+  </div>
+
+  <aside class="card template-card">
+    <h3>TaxSeer template</h3>
+    <p class="muted small mt-1">
+      Form {{ ds.selectedForm() }}, tax year {{ ds.taxYear() }}
+    </p>
+
+    <button mat-flat-button color="primary" type="button"
+      class="btn primary w-full mt-3"
+      (click)="ds.downloadTemplate(ds.selectedForm())">
+      <img src="/assets/icons/download-white.svg" alt="download" width="16" height="16" />
+      Download {{ ds.selectedForm() }} template
+    </button>
+
+    @if (ds.necFlow()) {
+    <div class="columns mt-3.5">
+      <b>Columns <span
+          class="muted font-normal">(required in bold)</span></b>
+      <ul>
+        @for (column of ds.templateColumns; track column[0]) {
+        <li [class.font-semibold]="column[1]">
+          {{ column[0] }}
+        </li>
+        }
+      </ul>
+    </div>
+    <p class="muted small mt-3">
+      Give first and last name for individuals or business name for an EIN. TINs work with or without dashes.
+      Amounts can include $ and commas.
+    </p>
+    }
+  </aside>
+</div>

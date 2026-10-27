@@ -1,0 +1,143 @@
+@if (!ds.necFlow()) {
+<div
+  class="card empty text-center">
+  This prototype details the 1099-NEC flow. {{ ds.selectedForm() }} follows the same recipient and entry pattern with its
+  own boxes.
+  <div class="mt-4">
+    <button mat-stroked-button type="button" class="btn small-btn" (click)="ds.goStep(2)">
+      Choose 1099-NEC instead
+    </button>
+  </div>
+</div>
+} @else {
+<div class="sec-h">
+  <div>
+    <h2>Who gets a {{ ds.selectedForm() }}?</h2>
+    <p class="muted small mt-1">
+      Recipients saved for {{ ds.currentFiler()?.name }}. Select one or many; you'll enter amounts for all of them on one
+      screen.
+    </p>
+  </div>
+
+  <div class="head-actions">
+    <!-- <mat-form-field class="search max-sm:flex-1 max-sm:w-full" appearance="outline" subscriptSizing="dynamic"> -->
+      <input aria-label="Find recipient" [ngModel]="ds.recipientSearch()" (ngModelChange)="ds.setRecipientSearch($event)" placeholder="Name or last 4 of TIN" class="border border-gray-200 bg-white px-3 py-1.5 rounded-md w-sm">
+    <!-- </mat-form-field> -->
+
+    <button mat-button type="button" class="btn link" (click)="ds.toBulkEntry()">
+      Many recipients? Import from Excel
+    </button>
+
+    <button mat-flat-button color="primary" type="button" class="btn primary"
+      (click)="ds.openAddRecipient()">
+      <img src="/assets/icons/plus-white.svg" alt="plus" width="16" height="16" />
+      Add recipient
+    </button>
+  </div>
+</div>
+
+<!-- Action Row -->
+<div class="toolbar-row">
+  <mat-button-toggle-group class="seg" aria-label="Show" [value]="ds.recipientFilter()"
+    (change)="ds.setRecipientFilter($event.value)">
+    @for (filter of ds.recipientFilters; track filter[0]) {
+    <mat-button-toggle [value]="filter[0]">{{ filter[1] }}</mat-button-toggle>
+    }
+  </mat-button-toggle-group>
+
+  <div class="flex items-center gap-2">
+    <button mat-button type="button" class="btn small-btn ghost" (click)="ds.sendW9Requests()">
+      Send W-9 requests
+    </button>
+    <button mat-button type="button" class="btn small-btn ghost" (click)="ds.notify('Recipients exported')">
+      Export
+    </button>
+  </div>
+</div>
+
+<div
+  class="card table-scroll">
+  <table class="rec-table">
+    <thead>
+      <tr>
+        <th class="w-10">
+          <mat-checkbox class="cbx" id="rAll" aria-label="Select all shown" [checked]="ds.allVisibleSelected()"
+            (change)="ds.toggleAllRecipients()"></mat-checkbox>
+        </th>
+        <th>Recipient</th>
+        <th>TIN</th>
+        <th>Address</th>
+        <th>W-9</th>
+        <th>{{ ds.selectedForm() }} {{ ds.taxYear() }}</th>
+        <th class="w-20"></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (r of ds.visibleRecipients(); track r.id) {
+      <tr class="radio-row cursor-pointer hover:bg-(--hover) transition-colors"
+        [class.sel]="r.selected" (click)="ds.toggleRecipient(r)" (keydown.enter)="ds.toggleRecipient(r)"
+        tabindex="0">
+        <td (click)="$event.stopPropagation()">
+          <mat-checkbox class="cbx" [attr.aria-label]="'Select ' + r.name" [checked]="r.selected"
+            (click)="ds.toggleRecipient(r)"></mat-checkbox>
+        </td>
+        <td>
+          <span class="name">{{ r.name }}</span>
+          <div class="small muted mt-0.5">
+            {{ r.type === 'EIN' ? 'Business' : 'Individual' }}
+            @if (r.email && r.econsent) { · e-delivery }
+          </div>
+        </td>
+        <td>
+          <span>{{ ds.maskTin(r) }}</span>
+          <div class="small muted">{{ r.type }}</div>
+        </td>
+        <td class="small">
+          {{ r.address }}<br>
+          {{ r.city }}{{ r.city ? ', ' : '' }}{{ r.state }} {{ r.zip }}
+          @if (ds.recipientIssues(r).length) {
+          <div class="issue text-(--red) mt-1">{{ ds.recipientIssues(r).join(' · ') }}
+          </div>
+          }
+        </td>
+        <td>
+          <mat-chip class="pill" [ngClass]="ds.w9Class(r)">{{ r.w9 }}</mat-chip>
+        </td>
+        <td>
+          @if (r.pendingForm) {
+          <mat-chip class="pill p-info">Pending form exists</mat-chip>
+          <div class="small muted mt-0.5">Selecting it opens that form</div>
+          } @else {
+          <span class="muted small">None yet</span>
+          }
+        </td>
+        <td class="text-right">
+          @if (ds.recipientIssues(r).length) {
+          <button mat-button type="button" class="btn small-btn text-(--red)"
+            (click)="$event.stopPropagation(); ds.openEditRecipient(r.id)">
+            Fix
+          </button>
+          } @else {
+          <button mat-button type="button" class="btn small-btn ghost"
+            (click)="$event.stopPropagation(); ds.openEditRecipient(r.id)">
+            Edit
+          </button>
+          }
+        </td>
+      </tr>
+      } @empty {
+      <tr>
+        <td colspan="7" class="empty">
+          {{ ds.filerHasRecipients() ? 'No recipients match.' : 'No recipients for this filer yet.' }}
+          <button mat-flat-button color="primary" type="button" class="btn small-btn primary ml-2"
+            (click)="ds.openAddRecipient()">
+            Add recipient
+          </button>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+}

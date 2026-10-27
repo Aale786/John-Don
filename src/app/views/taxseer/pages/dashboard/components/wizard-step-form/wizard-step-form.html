@@ -1,0 +1,152 @@
+<div class="year-row">
+  <h2 class="year-title">Tax year</h2>
+  <mat-button-toggle-group class="seg" aria-label="Tax year" [value]="ds.taxYear()" (change)="ds.chooseYear($event.value)">
+    @for (year of ds.taxYears; track year) {
+    <mat-button-toggle [value]="year">{{ year }}</mat-button-toggle>
+    }
+  </mat-button-toggle-group>
+  <span class="muted small">{{ ds.yearNote() }}</span>
+</div>
+
+<div class="forms-wrap">
+  <div class="forms-main">
+    <div class="sec-h">
+      <h2>Form</h2>
+      <!-- <mat-form-field class="search max-sm:w-full" appearance="outline" subscriptSizing="dynamic"> -->
+        <input aria-label="Find form" [ngModel]="ds.formSearch()" (ngModelChange)="ds.setFormSearch($event)" class="border border-gray-200 rounded-md px-3 py-1.5 bg-white w-sm"
+          placeholder="Type a form number or what was paid">
+      <!-- </mat-form-field> -->
+    </div>
+
+    @if (ds.usedFormOptions().length) {
+    <div class="form-group">
+      <h3>
+        Forms {{ ds.currentFiler()?.name }} filed before
+      </h3>
+      <div class="form-grid">
+        @for (form of ds.usedFormOptions(); track form.code) {
+        <button mat-stroked-button type="button"
+          class="form-option bg-white"
+          
+ [attr.aria-pressed]="ds.selectedForm() === form.code"
+          (click)="ds.chooseForm(form.code)">
+          <span class="tagline">
+            <strong>Form {{ form.code }}</strong>
+            <mat-chip class="pill p-info">Used last year</mat-chip>
+          </span>
+          <span  class="form-label">{{ form.label }}</span>
+        </button>
+        }
+      </div>
+    </div>
+    }
+
+    @for (group of ds.visibleFormGroups(); track group.group) {
+    <div class="form-group">
+      <h3>{{ group.group }}</h3>
+      <div class="form-grid">
+        @for (form of group.forms; track form.code) {
+
+    
+<button
+  mat-stroked-button
+  type="button"
+  class="form-option"
+  [attr.aria-pressed]="ds.selectedForm() === form.code"
+  (click)="ds.chooseForm(form.code)">
+
+  <span class="tagline">
+    <strong>Form {{ form.code }}</strong>
+  </span>
+
+  <span>{{ form.label }}</span>
+</button>
+
+        }
+      </div>
+    </div>
+    }
+
+    @if (!ds.usedFormOptions().length && !ds.visibleFormGroups().length) {
+    <div class="empty">
+      No form matches "{{ ds.formSearch() }}".
+    </div>
+    }
+  </div>
+
+  <!-- Filer Details Aside -->
+  <aside class="form-aside">
+    <div class="card">
+      <h3>Filer</h3>
+
+      <div class="kv-list">
+        <div class="kv flex justify-between">
+          <span>Name</span>
+          <b>{{ ds.currentFiler()?.name }}</b>
+        </div>
+        <div class="kv flex justify-between">
+          <span>EIN</span>
+          <span>{{ ds.formatEin(ds.currentFiler()?.ein ?? '') }}</span>
+        </div>
+        <div class="kv flex justify-between items-start">
+          <span>Address</span>
+          <span class="text-right">
+            {{ ds.currentFiler()?.address }}<br>
+            {{ ds.currentFiler()?.city }}, {{ ds.currentFiler()?.state }} {{ ds.currentFiler()?.zip }}
+          </span>
+        </div>
+      </div>
+
+      <button mat-button type="button" class="btn link w-full mt-3"
+        (click)="ds.changeFiler()">
+        Change filer
+      </button>
+    </div>
+
+    <div class="card">
+      @if (ds.selectedFormInfo()) {
+      <h3>
+        Form {{ ds.selectedForm() }} · {{ ds.taxYear() }}
+      </h3>
+
+      <div class="kv-list">
+        <div class="kv flex justify-between">
+          <span>E-file due</span>
+          <b>{{ ds.eFileDue() }}</b>
+        </div>
+
+        @if (ds.selectedForm() === '1099-NEC') {
+        <div class="kv flex justify-between">
+          <span>Reporting threshold</span>
+          <span>$600 for 2025</span>
+        </div>
+        <div class="kv flex justify-between">
+          <span>Recipient copies due</span>
+          <span>Feb 2, 2026</span>
+        </div>
+        <p class="muted small mt-2">
+          No Form 1096 is needed when you e-file.
+        </p>
+        }
+
+        @if (ds.selectedForm().startsWith('1095')) {
+        <p class="muted small mt-2">
+          The {{ ds.selectedForm().replace('1095', '1094') }} transmittal is created for you and can be edited before
+          e-filing.
+        </p>
+        }
+      </div>
+
+      <button mat-button type="button" class="btn link w-full mt-3"
+        (click)="ds.notify('IRS instructions opened')">
+        IRS instructions for this form
+      </button>
+      } @else {
+      <h3>Pick a form</h3>
+      <p class="muted small">
+        Due dates and thresholds for the selected tax year show here.
+      </p>
+      }
+    </div>
+  </aside>
+</div>
