@@ -1,0 +1,33 @@
+{
+  "project_type": "Two separate repos: (1) Spring Boot 4.1.1 WebFlux backend at D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend, (2) Angular 19 / Angular Material / Tailwind frontend at D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-",
+  "language": "Java 21 (backend), TypeScript (frontend)",
+  "build_system": "Maven Wrapper (mvnw.cmd) for backend — build with `.\\mvnw.cmd compile` from D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend. Angular CLI (npm) for frontend — build with `npm run build` from D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-. PowerShell: use semicolon (;) not && to chain commands.",
+  "test_framework": "Spring Boot Test (WebFlux test slice) for backend. No frontend test framework is configured.",
+  "build_command": ".\\mvnw.cmd compile (backend) | npm run build (frontend)",
+  "test_command": ".\\mvnw.cmd test (backend)",
+  "verification_instructions": "Backend: run `.\\mvnw.cmd compile` from D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend; expect BUILD SUCCESS. Frontend: run `npm run build` from D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-; expect no TypeScript errors. For runtime test, run `.\\mvnw.cmd spring-boot:run` and curl the health endpoint.",
+  "snapshot_or_generated_files": "D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\src\\main\\resources\\schema.sql is regenerated each FEAT — it is the canonical source of truth for the DB schema and will be replaced entirely by FEAT-001.",
+  "environment_constraints": "DO NOT modify application.properties (DB already configured: AWS RDS PostgreSQL via R2DBC). DO NOT touch or delete anything under src/main/java/com/taxseer/Test/ — that package is off-limits. DO NOT touch any CSS, SCSS, or HTML templates in the frontend. PowerShell does not support && for command chaining; use semicolons.",
+  "contribution_requirements": "Backend base package is com.taxseer. All new packages live under com.taxseer (e.g., com.taxseer.filer, com.taxseer.recipient, etc.). Lombok is on the annotation processor path — use @Getter/@Setter/@NoArgsConstructor/@AllArgsConstructor/@Builder freely. R2DBC repositories extend R2dbcRepository<Entity, Long>. All controllers return reactive types (Mono/Flux). CORS must allow the Angular dev server (localhost:4200) via a WebFlux CorsWebFilter bean.",
+  "key_patterns": "Existing pattern in com.taxseer.Test: @Table entity with @Id Long id + Lombok, R2dbcRepository interface, @RestController with constructor-injected repo (no @Service layer in Test). New packages WILL add a @Service layer between controller and repo for business logic. Entities use @Table(name='...'). Spring Data R2DBC naming convention: snake_case column = camelCase field auto-mapped. @CreatedDate / @LastModifiedDate require @EnableR2dbcAuditing on TaxseerApplication or a config class. For search-by-query-param, use @RequestParam in controller and pass to repo via @Query with :param binding.",
+  "relevant_files": [
+    "D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\pom.xml",
+    "D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\src\\main\\resources\\application.properties",
+    "D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\src\\main\\resources\\schema.sql",
+    "D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\src\\main\\java\\com\\taxseer\\TaxseerApplication.java",
+    "D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\src\\main\\java\\com\\taxseer\\Test\\Test.java",
+    "D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\src\\main\\java\\com\\taxseer\\Test\\TestRepository.java",
+    "D:\\Rasool\\Project\\TAXSEER\\Taxseer-Backend\\src\\main\\java\\com\\taxseer\\Test\\TestController.java",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\data\\taxseer-filers.data.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\filer-details\\filer-details.data.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\orders\\orders.data.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\dashboard\\dashboard.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\recipients\\recipients.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\orders\\orders.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\settings\\settings.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\pages\\filer-details\\filer-details.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\views\\taxseer\\routes.ts",
+    "D:\\Rasool\\TaxSeerPractice\\tax-filing-frontend-fuse-\\src\\app\\app.config.ts"
+  ],
+  "directory_structure": "Backend: src/main/java/com/taxseer/ (TaxseerApplication.java + Test/ package — do not touch). src/main/resources/ (application.properties — do not touch, schema.sql — replace). New packages go in src/main/java/com/taxseer/<domain>/. Frontend: src/app/views/taxseer/ — all feature pages live here. data/ holds shared dummy data (to be replaced with services). pages/ has dashboard, filer-details, filing, orders, recipients, settings. layout/ has the top nav. No existing Angular service layer — new services go in src/app/views/taxseer/services/ or src/app/core/api/."
+}

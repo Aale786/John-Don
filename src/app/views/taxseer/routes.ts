@@ -67,6 +67,12 @@ export default [
                         .then(m => m.TaxseerOrders),
             },
             {
+                path:'cart',
+                loadComponent: () =>
+                    import('./components/add-to-cart/add-to-cart')
+                .then(m => m.AddToCartComponent)
+            },
+            {
                 path: 'settings',
                 loadComponent: () =>
                     import('./pages/settings/settings')

@@ -1,0 +1,64 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.sign-in {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: #edf2f6;
+}
+
+.sign-in__card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+  padding: 32px 28px;
+  border: 1px solid #d7e0ea;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.sign-in__logo {
+  display: block;
+  width: auto;
+  height: 32px;
+  margin-bottom: 20px;
+  object-fit: contain;
+}
+
+.sign-in__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #17212e;
+}
+
+.sign-in__lead {
+  margin: 8px 0 20px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #5b6b7c;
+}
+
+.sign-in__error {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.sign-in__field {
+  width: 100%;
+}
+
+.sign-in__submit {
+  margin-top: 8px;
+  height: 44px;
+}

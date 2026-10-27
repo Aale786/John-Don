@@ -5,9 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatChipsModule } from '@angular/material/chips';
-import { UserService } from '../../../../core/api/user.service';
-import { RoleService } from '../../../../core/api/role.service';
-import { WalletService } from '../../../../core/api/wallet.service';
+import { AuthService } from '../../../../core/auth-interceptors/auth.service';
+import { UserService } from '../../../../core/api-service/user.service';
+import { RoleService } from '../../../../core/api-service/role.service';
+import { WalletService } from '../../../../core/api-service/wallet.service';
 
 type Section = 'account' | 'users' | 'roles';
 
@@ -62,6 +63,7 @@ export class Settings {
     private readonly userService = inject(UserService);
     private readonly roleService = inject(RoleService);
     private readonly walletService = inject(WalletService);
+    private readonly auth = inject(AuthService);
 
     section: Section = 'account';
 
@@ -76,10 +78,10 @@ export class Settings {
     userCount = 0;
 
     me: Me = {
-        first: 'Mary',
-        last: 'Jane',
-        email: 'maryp@csnizz.com',
-        phone: '2407516035',
+        first: '',
+        last: '',
+        email: '',
+        phone: '',
     };
 
     accountForm: Me = { ...this.me };
@@ -169,6 +171,17 @@ export class Settings {
     walletBalance = 0;
 
     constructor() {
+        const user = this.auth.currentUser();
+        if (user) {
+            this.me = {
+                first: user.firstName,
+                last: user.lastName,
+                email: user.email,
+                phone: '',
+            };
+            this.accountForm = { ...this.me };
+        }
+
         // Load users from API
         this.userService.getAll().subscribe({
             next: (data: any[]) => {
@@ -192,8 +205,7 @@ export class Settings {
             },
         });
 
-        // Load wallet balance for current user (id=1)
-        this.walletService.getBalance(1).subscribe({
+        this.walletService.getBalance().subscribe({
             next: (w: { balance: number }) => {
                 this.walletBalance = w.balance;
             },

@@ -45,6 +45,7 @@ function mapApiRecipient(r: ApiRecipient): FilerRecipient {
     state: r.state ?? '',
     zip: r.zip ?? '',
     email: r.email ?? '',
+    econsent: r.econsent ?? false,
     w9,
     // Pass through extra fields some callers need (recipients.ts uses filerName)
     ...(r.filerName ? { filerName: r.filerName } : {}),
@@ -73,12 +74,12 @@ export class RecipientService {
     return this.http.get<ApiRecipient>(`${this.base}/${id}`).pipe(map(mapApiRecipient));
   }
 
-  create(r: FilerRecipient): Observable<FilerRecipient> {
-    return this.http.post<ApiRecipient>(this.base, toApiRecipient(r)).pipe(map(mapApiRecipient));
+  create(r: any): Observable<FilerRecipient> {
+    return this.http.post<ApiRecipient>(this.base, r).pipe(map(mapApiRecipient));
   }
 
-  update(id: number, r: FilerRecipient): Observable<FilerRecipient> {
-    return this.http.put<ApiRecipient>(`${this.base}/${id}`, toApiRecipient(r)).pipe(map(mapApiRecipient));
+  update(id: number, r: any): Observable<FilerRecipient> {
+    return this.http.put<ApiRecipient>(`${this.base}/${id}`, r).pipe(map(mapApiRecipient));
   }
 
   delete(id: number): Observable<void> {
@@ -99,5 +100,6 @@ function toApiRecipient(r: FilerRecipient): Partial<ApiRecipient> {
     zip: r.zip,
     email: r.email,
     w9Status: r.w9,
+    econsent: r.econsent,
   };
 }

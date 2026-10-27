@@ -10,8 +10,10 @@ export type FilerRecipient = {
   state: string;
   zip: string;
   email: string;
+  add?:string;
+  econsent?: boolean;
   w9: 'Requested' | 'Submitted' | 'Not requested';
-}
+};
 
 export const FILER_RECIPIENTS: FilerRecipient[] = [
   {
@@ -19,56 +21,56 @@ export const FILER_RECIPIENTS: FilerRecipient[] = [
     tin: '888222330', name: 'Mark Waugh',
     address: '101 Market St', city: 'Rockville',
     state: 'MD', zip: '20850',
-    email: 'mark.waugh@example.com', w9: 'Requested',
+    email: 'mark.waugh@example.com', w9: 'Requested',econsent: false
   },
   {
     id: 'r2', filerId: 1, type: 'SSN',
     tin: '111235678', name: 'Derek Randal',
     address: '20 East Bank St', city: '',
     state: 'MENDOZA', zip: '',
-    email: '', w9: 'Submitted',
+    email: '', w9: 'Submitted',econsent: false
   },
   {
     id: 'r3', filerId: 1, type: 'SSN',
     tin: '88765878', name: 'Tariq Fateh',
     address: '36 Market Street', city: 'Gaithersburg',
     state: 'MD', zip: '20878',
-    email: '', w9: 'Not requested',
+    email: '', w9: 'Not requested',econsent: false
   },
   {
     id: 'r4', filerId: 1, type: 'SSN',
     tin: '402119021', name: 'Priya Nair',
     address: '55 Oak Ave', city: 'San Jose',
     state: 'CA', zip: '95112',
-    email: 'priya.nair@example.com', w9: 'Submitted',
+    email: 'priya.nair@example.com', w9: 'Submitted',econsent: false
   },
   {
     id: 'r5', filerId: 1, type: 'EIN',
     tin: '521234102', name: 'Hillside Legal Group PC',
     address: '1 Court Sq', city: 'Towson',
     state: 'MD', zip: '21204',
-    email: 'billing@hillsidelegal.example', w9: 'Submitted',
+    email: 'billing@hillsidelegal.example', w9: 'Submitted',econsent: false
   },
   {
     id: 'r6', filerId: 1, type: 'EIN',
     tin: '540987730', name: 'Rockcreek Office LLC',
     address: '800 Rock Creek Pkwy', city: 'Arlington',
     state: 'VA', zip: '22201',
-    email: '', w9: 'Submitted',
+    email: '', w9: 'Submitted',econsent: false
   },
   {
     id: 'r7', filerId: 9, type: 'SSN',
     tin: '219554411', name: 'Jose Ortega',
     address: '4 Elm Ct', city: 'Laurel',
     state: 'MD', zip: '20707',
-    email: '', w9: 'Requested',
+    email: '', w9: 'Requested',econsent: false
   },
   {
     id: 'r8', filerId: 9, type: 'EIN',
     tin: '271117654', name: 'Blue Ridge Couriers',
     address: '77 Route 1', city: 'Elkridge',
     state: 'MD', zip: '21075',
-    email: '', w9: 'Submitted',
+    email: '', w9: 'Submitted',econsent: false
   },
 ];
 

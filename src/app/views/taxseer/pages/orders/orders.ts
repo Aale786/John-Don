@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
-import { OrderService } from '../../../../core/api/order.service';
+import { OrderService } from '../../../../core/api-service/order.service';
 import { TaxseerOrder } from './orders.data';
 
 export type OrderItem = {

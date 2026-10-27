@@ -12,15 +12,15 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { isCompleteTin, normalizeTin } from '../../../../core/validation/tin';
 import { US_STATE_NAMES, US_STATES } from '../../data/taxseer-filers.data';
-import { FilerService } from '../../../../core/api/filer.service';
-import { RecipientService } from '../../../../core/api/recipient.service';
+import { FilerService } from '../../../../core/api-service/filer.service';
+import { RecipientService } from '../../../../core/api-service/recipient.service';
 import {
-  NecAmountsComponent,
   NecAmountRow,
   necRowErrors,
   necRowWarnings,
-} from '../filing/components/nec-amounts/nec-amounts';
+} from './nec-amounts.types';
 import { AddToCartComponent } from '../../components/add-to-cart/add-to-cart';
 import { FilerFiling } from '../filer-details/filer-details.data';
 
@@ -132,7 +132,6 @@ type ResumeItem = {
     imports: [
       CommonModule,
       FormsModule,
-      NecAmountsComponent,
       AddToCartComponent,
       MatButtonModule,
       MatButtonToggleModule,
@@ -156,9 +155,6 @@ export class TaxseerDashboard implements OnInit {
 
   cartCount = 52;
   walletBalance = 100;
-
-  /** The current logged-in user ID — used by AddToCartComponent. */
-  readonly currentUserId = 1;
 
   /** Completed filings for the currently-selected filer and form (step 5 review). */
   get completedFilings(): FilerFiling[] {
@@ -428,17 +424,34 @@ export class TaxseerDashboard implements OnInit {
   ];
 
   ngOnInit(): void {
+    // Seed from cache immediately so the table is never blank on re-visit.
+    // The cached signal lives in the singleton FilerService and survives navigation.
+    const cached = this.filerService.cachedFilers();
+    if (cached.length > 0) {
+      this.filers = this.mapFilersFromApi(cached);
+    }
+    // Always refresh from API in the background to pick up any changes.
     this.loadFilers();
   }
 
-  private loadFilers(): void {
-    const q = this.filerSearch.trim();
-    if (q) {
-      this.filerService.search(q).subscribe(data => this.filers = this.mapFilersFromApi(data));
-    } else {
-      this.filerService.getAll().subscribe(data => this.filers = this.mapFilersFromApi(data));
+private loadFilers(): void {
+  const q = this.filerSearch.trim();
+
+  const request$ = q
+    ? this.filerService.search(q)
+    : this.filerService.getAll();
+
+  request$.subscribe({
+    next: (data) => {
+      this.filers = this.mapFilersFromApi(data);
+      // console.log('Dashboard filers loaded:', this.filers);
+    },
+    error: (error) => {
+      console.error('Failed to load filers:', error);
+      this.notify('Unable to load filers from the server.');
     }
-  }
+  });
+}
 
   /** Map TaxseerFiler (API shape) to the dashboard-local Filer shape */
   private mapFilersFromApi(data: any[]): Filer[] {
@@ -464,18 +477,18 @@ export class TaxseerDashboard implements OnInit {
     } as Filer));
   }
 
-  private loadRecipients(filerId: number): void {
-    const q = this.recipientSearch.trim();
-    if (q) {
-      this.recipientService.search(filerId, q).subscribe(data => {
-        this.recipients = this.mapRecipientsFromApi(data);
-      });
-    } else {
-      this.recipientService.getByFiler(filerId).subscribe(data => {
-        this.recipients = this.mapRecipientsFromApi(data);
-      });
+ private loadRecipients(filerId: number): void {
+  this.recipientService.getByFiler(filerId).subscribe({
+    next: (data) => {
+      this.recipients = this.mapRecipientsFromApi(data);
+      console.log('Dashboard recipients loaded:', this.recipients);
+    },
+    error: (error) => {
+      console.error('Failed to load recipients:', error);
+      this.notify('Unable to load recipients from the server.');
     }
-  }
+  });
+}
 
   /** Map FilerRecipient (API shape) to the dashboard-local Recipient shape */
   private mapRecipientsFromApi(data: any[]): Recipient[] {
@@ -776,6 +789,82 @@ export class TaxseerDashboard implements OnInit {
   amountRowWarnings(row: NecAmountRow): string[] {
     return necRowWarnings(row);
   }
+
+  // -------------------------------------------------------------------------
+  // NEC amounts table helpers — inlined from NecAmountsComponent
+  // These replace the @Input/@Output communication that the component used.
+  // -------------------------------------------------------------------------
+  readonly necStates = US_STATES;
+
+  necRowStatus(row: NecAmountRow): string {
+    if (necRowErrors(row).length > 0) return 'Fix';
+    return necRowWarnings(row).length ? 'Check' : 'Ready';
+  }
+
+  necRowStatusClass(row: NecAmountRow): string {
+    if (necRowErrors(row).length > 0) return 'p-err';
+    return necRowWarnings(row).length ? 'p-warn' : 'p-ok';
+  }
+
+  necBoxLabel(row: NecAmountRow, box: string): string {
+    return `${box.replace('box', 'Box ')} for ${row.name}`;
+  }
+
+  necToggleRow(row: NecAmountRow): void {
+    row.expanded = !row.expanded;
+    // Spread to trigger Angular change detection
+    this.amountRows = this.amountRows.map(r => ({ ...r }));
+  }
+
+  necOnAmountChange(row: NecAmountRow, field: 'box1' | 'box3' | 'box4' | 'box5' | 'box7', value: number | null): void {
+    row[field] = value;
+    this.amountRows = this.amountRows.map(r => ({ ...r }));
+  }
+
+  necOnStateChange(row: NecAmountRow, code: string): void {
+    row.state = code;
+    const payerState  = this.currentFiler?.state ?? 'MD';
+    const payerStateNo = this.currentFiler?.stateNo ?? '';
+    if (code === payerState && !row.payerStateNumber) {
+      row.payerStateNumber = payerStateNo;
+    }
+    this.amountRows = this.amountRows.map(r => ({ ...r }));
+  }
+
+  necOnPayerStateNoChange(row: NecAmountRow, value: string): void {
+    row.payerStateNumber = value;
+    this.amountRows = this.amountRows.map(r => ({ ...r }));
+  }
+
+  necOnBox2Change(row: NecAmountRow, value: boolean): void {
+    row.box2 = value;
+    this.amountRows = this.amountRows.map(r => ({ ...r }));
+  }
+
+  necOnSecondTinChange(row: NecAmountRow, value: boolean): void {
+    row.secondTin = value;
+    this.amountRows = this.amountRows.map(r => ({ ...r }));
+  }
+
+  necOnAccountChange(row: NecAmountRow, value: string): void {
+    row.accountNumber = value;
+    this.amountRows = this.amountRows.map(r => ({ ...r }));
+  }
+
+  necUsePayerStateForAll(): void {
+    const payerState   = this.currentFiler?.state ?? 'MD';
+    const payerStateNo = this.currentFiler?.stateNo ?? '';
+    this.amountRows = this.amountRows.map(r => ({
+      ...r,
+      state: payerState,
+      payerStateNumber: payerStateNo,
+    }));
+  }
+
+  get necTotalBox1(): number { return this.sumAmountRows('box1'); }
+  get necTotalBox4(): number { return this.sumAmountRows('box4'); }
+  get necTotalBox5(): number { return this.sumAmountRows('box5'); }
+  get necTotalBox7(): number { return this.sumAmountRows('box7'); }
 
   get amountErrorCount(): number {
     return this.amountRowsToUse.filter(
@@ -1985,162 +2074,206 @@ export class TaxseerDashboard implements OnInit {
     return type === 'EIN' ? '12-3456789' : '123-45-6789';
   }
 
-  saveFiler(): void {
-    const form = this.filerForm;
-    const ein = form.ein.replace(/\D/g, '');
-    const errors: Record<string, string> = {};
+ private validateFiler(): boolean {
+  this.panelErrors = {};
+  let valid = true;
 
-    if (!form.name.trim()) {
-      errors['name'] = 'Enter the legal name.';
-    }
-
-    if (ein.length !== 9) {
-      errors['ein'] = `EIN must be 9 digits. You entered ${ein.length}.`;
-    } else if (
-      this.filers.some(
-        item => item.ein === ein && item.id !== this.panelFilerId
-      )
-    ) {
-      errors['ein'] = 'Another filer on this account already uses this EIN.';
-    }
-
-    if (!form.address.trim()) {
-      errors['address'] = 'Enter a street address.';
-    }
-
-    if (!form.city.trim()) {
-      errors['city'] = 'Enter a city.';
-    }
-
-    if (!this.stateOptions.some(state => state[0] === form.state)) {
-      errors['state'] = 'Choose a state.';
-    }
-
-    if (!/^\d{5}(-?\d{4})?$/.test(form.zip)) {
-      errors['zip'] = '5 or 9 digits.';
-    }
-
-    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
-      errors['email'] = 'Check the email address.';
-    }
-
-    this.panelErrors = errors;
-
-    if (Object.keys(errors).length) {
-      return;
-    }
-
-    form.name = form.name.trim();
-    form.ein = ein;
-
-    const existing = this.filers.find(
-      filer => filer.id === this.panelFilerId
-    );
-
-    if (existing) {
-      Object.assign(existing, form);
-      delete existing.warn;
-      this.notify(`${form.name} updated`);
-    } else {
-      form.id = Date.now();
-      form.warn = undefined;
-      this.filers.push(form);
-      this.notify(`${form.name} added`);
-
-      if (this.activeView === 'wizard' && this.step === 1) {
-        this.selectedFilerId = form.id;
-      }
-    }
-
-    this.closePanel();
+  if (!this.filerForm.name?.trim()) {
+    this.panelErrors['name'] = 'Legal name is required.';
+    valid = false;
   }
 
-  saveRecipient(withW9?: boolean): void {
-    const form = this.recipientForm;
-    const tin = form.tin.replace(/\D/g, '');
-
-    if (form.type !== 'EIN') {
-      form.name = [form.first, form.middle, form.last]
-        .filter(Boolean)
-        .join(' ')
-        .trim();
-    }
-
-    const errors: Record<string, string> = {};
-
-    if (form.type !== 'Unknown' && tin.length !== 9) {
-      errors['tin'] = `${form.type} must be 9 digits. You entered ${tin.length}.`;
-    }
-
-    if (
-      form.type === 'EIN'
-        ? !form.name.trim()
-        : !(form.first?.trim() && form.last?.trim())
-    ) {
-      errors['name'] =
-        form.type === 'EIN'
-          ? 'Enter the business name.'
-          : 'Enter first and last name.';
-    }
-
-    if (!form.address.trim()) {
-      errors['address'] = 'Enter a street address.';
-    }
-
-    if (!form.city.trim()) {
-      errors['city'] = 'Enter a city.';
-    }
-
-    if (form.country !== 'FOREIGN') {
-      if (!this.stateOptions.some(state => state[0] === form.state)) {
-        errors['state'] = 'Choose a state.';
-      }
-
-      if (!/^\d{5}(-?\d{4})?$/.test(form.zip)) {
-        errors['zip'] = '5 or 9 digits.';
-      }
-    }
-
-    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
-      errors['email'] = 'Check the email address.';
-    }
-
-    if (withW9 && !form.email) {
-      errors['email'] = 'Add an email to send the W-9 request.';
-    }
-
-    this.panelErrors = errors;
-
-    if (Object.keys(errors).length) {
-      return;
-    }
-
-    form.name = form.name.trim();
-    form.tin = tin;
-
-    if (withW9) {
-      form.w9 = 'Requested';
-    }
-
-    const existing = this.recipients.find(
-      recipient => recipient.id === this.panelRecipientId
-    );
-
-    if (existing) {
-      Object.assign(existing, form);
-      this.notify(`${form.name} updated`);
-    } else {
-      form.id = this.nextRecipientId();
-      form.filerId = this.selectedFilerId ?? form.filerId;
-      form.selected = true;
-      this.recipients.push(form);
-      this.notify(
-        `${form.name} added and selected${withW9 ? '. W-9 request sent.' : ''}`
-      );
-    }
-
-    this.closePanel();
+  const einDigits = (this.filerForm.ein ?? '').replace(/\D/g, '');
+  if (!einDigits) {
+    this.panelErrors['ein'] = 'EIN is required.';
+    valid = false;
+  } else if (einDigits.length !== 9) {
+    this.panelErrors['ein'] = 'EIN must be 9 digits (e.g. 12-3456789).';
+    valid = false;
   }
+
+  if (!this.filerForm.address?.trim()) {
+    this.panelErrors['address'] = 'Street address is required.';
+    valid = false;
+  }
+
+  if (!this.filerForm.city?.trim()) {
+    this.panelErrors['city'] = 'City is required.';
+    valid = false;
+  }
+
+  if (!this.filerForm.state?.trim()) {
+    this.panelErrors['state'] = 'State is required.';
+    valid = false;
+  }
+
+  if (!this.filerForm.zip?.trim()) {
+    this.panelErrors['zip'] = 'ZIP code is required.';
+    valid = false;
+  } else if (!/^\d{5}(-\d{4})?$/.test(this.filerForm.zip.trim())) {
+    this.panelErrors['zip'] = 'ZIP must be 5 digits (e.g. 20850).';
+    valid = false;
+  }
+
+  return valid;
+}
+
+saveFiler(): void {
+  if (!this.validateFiler()) {
+    return;
+  }
+
+  // Build payload — backend entity uses pendingCount/readyCount/filedCount
+  // (the column names in the DB), not pending/ready/filed (frontend aliases).
+  const einDigits = this.filerForm.ein.replace(/\D/g, '');
+  const payload: any = {
+    name: this.filerForm.name.trim(),
+    ein: einDigits,
+    address: this.filerForm.address.trim(),
+    address2: this.filerForm.address2?.trim() ?? '',
+    city: this.filerForm.city.trim(),
+    state: this.filerForm.state.trim(),
+    zip: this.filerForm.zip.trim(),
+    email: this.filerForm.email?.trim() ?? '',
+    phone: this.filerForm.phone?.trim() ?? '',
+    stateId: this.filerForm.stateNo?.trim() ?? '',
+    name2: '',
+    mask: false,
+    formsUsed: this.filerForm.forms.join(','),
+    // Backend entity field names (not the frontend alias names):
+    pendingCount: this.filerForm.pending ?? 0,
+    readyCount: 0,
+    filedCount: this.filerForm.filed ?? 0,
+    w9Total: this.filerForm.w9Total ?? 0,
+    w9Required: (this.filerForm.w9Waiting ?? 0) + (this.filerForm.w9Received ?? 0),
+    w9Received: this.filerForm.w9Received ?? 0,
+    warning: this.filerForm.warn ?? null,
+  };
+
+  const request$ = this.panelEditing && this.panelFilerId !== null
+    ? this.filerService.update(this.panelFilerId, payload)
+    : this.filerService.create(payload);
+
+  request$.subscribe({
+    next: () => {
+      this.closePanel();
+      this.loadFilers();
+      this.notify(this.panelEditing ? 'Filer updated.' : 'Filer created.');
+    },
+    error: (err: any) => {
+      const msg = err?.error?.friendlyMessage ?? err?.error?.message ?? 'Unable to save filer.';
+      this.panelErrors['_form'] = msg;
+    },
+  });
+}
+
+private validateRecipient(): boolean {
+  this.panelErrors = {};
+  let valid = true;
+
+  if (this.recipientForm.type !== 'Unknown') {
+    const tinDigits = normalizeTin(this.recipientForm.tin ?? '');
+    if (!tinDigits) {
+      this.panelErrors['tin'] = `${this.recipientForm.type} is required.`;
+      valid = false;
+    } else if (!isCompleteTin(tinDigits)) {
+      this.panelErrors['tin'] = `${this.recipientForm.type} must be 9 digits.`;
+      valid = false;
+    }
+  }
+
+  if (this.recipientForm.type === 'EIN') {
+    if (!this.recipientForm.name?.trim()) {
+      this.panelErrors['name'] = 'Business name is required.';
+      valid = false;
+    }
+  } else {
+    // Individual: validate first + last — do NOT mutate recipientForm.name here
+    if (!this.recipientForm.first?.trim()) {
+      this.panelErrors['first'] = 'First name is required.';
+      valid = false;
+    }
+    if (!this.recipientForm.last?.trim()) {
+      this.panelErrors['last'] = 'Last name is required.';
+      valid = false;
+    }
+  }
+
+  if (!this.recipientForm.address?.trim()) {
+    this.panelErrors['address'] = 'Address is required.';
+    valid = false;
+  }
+
+  if (!this.recipientForm.city?.trim()) {
+    this.panelErrors['city'] = 'City is required.';
+    valid = false;
+  }
+
+  if (!this.recipientForm.state?.trim()) {
+    this.panelErrors['state'] = 'State is required.';
+    valid = false;
+  }
+
+  if (!this.recipientForm.zip?.trim()) {
+    this.panelErrors['zip'] = 'ZIP is required.';
+    valid = false;
+  } else if (!/^\d{5}(-\d{4})?$/.test(this.recipientForm.zip.trim())) {
+    this.panelErrors['zip'] = 'ZIP must be 5 digits.';
+    valid = false;
+  }
+
+  return valid;
+}
+
+saveRecipient(isSubmitted: boolean = false): void {
+  if (!this.validateRecipient()) {
+    return;
+  }
+
+  const recipientType = this.recipientForm.type;
+
+  // Assemble name here — after validation, outside ngModel change detection cycle
+  const resolvedName = recipientType === 'EIN'
+    ? this.recipientForm.name.trim()
+    : [
+        this.recipientForm.first?.trim(),
+        this.recipientForm.middle?.trim(),
+        this.recipientForm.last?.trim(),
+      ].filter(Boolean).join(' ');
+
+  const isCreate = !this.panelEditing || this.panelRecipientId === null;
+
+  const payload: any = {
+    filerId: Number(this.recipientForm.filerId) || (this.selectedFilerId ?? 1),
+    name: resolvedName,
+    type: recipientType === 'Unknown' ? 'SSN' : recipientType,
+    tin: (this.recipientForm.tin ?? '').replace(/\D/g, '') || '000000000',
+    address: this.recipientForm.address.trim(),
+    address2: this.recipientForm.address2?.trim() ?? '',
+    city: this.recipientForm.city.trim(),
+    state: this.recipientForm.state.trim(),
+    zip: this.recipientForm.zip.trim(),
+    email: this.recipientForm.email?.trim() ?? '',
+    econsent: this.recipientForm.econsent ?? false,
+    w9Status: isSubmitted ? 'Submitted' : 'Not requested',
+  };
+
+  const request$ = !isCreate
+    ? this.recipientService.update(this.panelRecipientId!, payload)
+    : this.recipientService.create(payload);
+
+  request$.subscribe({
+    next: () => {
+      this.closePanel();
+      this.loadRecipients(payload.filerId);
+      this.notify(isCreate ? 'Recipient added.' : 'Recipient updated.');
+    },
+    error: (err: any) => {
+      const msg = err?.error?.friendlyMessage ?? err?.error?.message ?? 'Unable to save recipient.';
+      this.panelErrors['_form'] = msg;
+    },
+  });
+}
 
   private nextRecipientId(): number {
     return this.recipients.reduce(

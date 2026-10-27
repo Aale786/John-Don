@@ -1,0 +1,50 @@
+<div class="sign-in">
+  <form class="sign-in__card" (ngSubmit)="submit()" novalidate>
+    <img
+      src="/images/taxseerLogo.png"
+      alt="Taxseer"
+      class="sign-in__logo"
+    />
+
+    <h1 class="sign-in__title">Sign in</h1>
+    <p class="sign-in__lead">Use your Taxseer account to file 1099s and manage W-9s.</p>
+
+    @if (errorMessage) {
+      <p class="sign-in__error" role="alert">{{ errorMessage }}</p>
+    }
+
+    <mat-form-field appearance="outline" class="sign-in__field">
+      <mat-label>Email</mat-label>
+      <input
+        matInput
+        type="email"
+        name="email"
+        autocomplete="username"
+        [(ngModel)]="email"
+        required
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="sign-in__field">
+      <mat-label>Password</mat-label>
+      <input
+        matInput
+        type="password"
+        name="password"
+        autocomplete="current-password"
+        [(ngModel)]="password"
+        required
+      />
+    </mat-form-field>
+
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      class="sign-in__submit"
+      [disabled]="submitting"
+    >
+      {{ submitting ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+</div>

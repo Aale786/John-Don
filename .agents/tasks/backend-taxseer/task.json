@@ -1,0 +1,7 @@
+{
+  "task_id": "task-backend-taxseer",
+  "task_description": "Build a complete Spring Boot 4.1.1 / WebFlux / R2DBC / PostgreSQL REST API for the TaxSeer tax-filing platform, then wire every frontend page (dashboard, filer details, recipients/W-9, orders, settings) to real API calls, replacing all dummy in-memory data.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004"],
+  "blocked_reason": null
+}

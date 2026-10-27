@@ -1,59 +1,135 @@
-<!-- AddToCartComponent — matches pill/chip/button design system from STYLING.md -->
+
 <div class="card">
-  <!-- Header -->
-  <div class="card-heading pb-4">
-    <h2 class="text-base font-semibold text-taxseer-ink">Add to cart</h2>
-    <span class="small muted">{{ totalCount }} form{{ totalCount === 1 ? '' : 's' }} · ${{ totalPrice }}.00</span>
-  </div>
 
-  @if (completedFilings.length === 0) {
-  <p class="muted small p-3">No completed filings to add. Finish entering amounts to continue.</p>
-  } @else {
+    <!-- Header -->
+    <div class="card-heading pb-4">
+        <h2 class="text-base font-semibold text-taxseer-ink">
+            Add to cart
+        </h2>
 
-  <!-- Filing list -->
-  <div class="divide-y divide-taxseer-line">
-    @for (filing of completedFilings; track filing.id) {
-    <div class="flex items-center justify-between gap-3 py-3 px-1">
-      <div class="flex-1 min-w-0">
-        <span class="block font-medium text-sm text-taxseer-ink truncate">{{ filing.recipient }}</span>
-        <span class="small muted block mt-0.5">{{ filing.form }} · {{ filing.taxYear }} · ${{ (filing.amount ?? 0) | number:'1.2-2' }}</span>
-      </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <mat-chip class="pill" [ngClass]="statusClass(filing)">{{ filing.status }}</mat-chip>
-        <span class="small muted whitespace-nowrap">${{ pricePerForm }}.00</span>
-      </div>
+        <span class="small muted">
+            {{ totalCount }} form{{ totalCount === 1 ? '' : 's' }}
+            · ${{ totalPrice }}.00
+        </span>
     </div>
+
+    <!-- Success message -->
+    @if (successMessage) {
+        <p class="small text-green-600 p-2">
+            {{ successMessage }}
+        </p>
     }
-  </div>
 
-  <!-- Summary bar -->
-  <div class="flex items-center justify-between gap-3 pt-4 mt-2 border-t border-taxseer-line">
-    <div>
-      <span class="block font-semibold text-taxseer-ink">Total</span>
-      <span class="small muted">{{ totalCount }} form{{ totalCount === 1 ? '' : 's' }} at ${{ pricePerForm }}.00 each</span>
-    </div>
-    <span class="text-lg font-semibold text-taxseer-ink">${{ totalPrice }}.00</span>
-  </div>
+    <!-- Error message -->
+    @if (errorMessage) {
+        <p class="small text-red-600 p-2">
+            {{ errorMessage }}
+        </p>
+    }
 
-  <!-- Add to cart button -->
-  <div class="mt-4">
-    <button
-      mat-flat-button
-      color="primary"
-      class="btn primary w-full"
-      [disabled]="loading || totalCount === 0"
-      (click)="addToCart()"
-      aria-label="Add forms to cart">
-      @if (loading) {
-      <span class="flex items-center justify-center gap-2">
-        <span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-        Adding…
-      </span>
-      } @else {
-      Add {{ totalCount }} form{{ totalCount === 1 ? '' : 's' }} to cart
-      }
-    </button>
-  </div>
+    @if (completedFilings.length === 0) {
 
-  }
+        <p class="muted small p-3">
+            No completed filings to add.
+            Finish entering amounts to continue.
+        </p>
+
+    } @else {
+
+        <!-- Filing list -->
+        <div class="divide-y divide-taxseer-line">
+
+            @for (filing of completedFilings; track filing.id) {
+
+                <div class="flex items-center justify-between gap-3 py-3 px-1">
+
+                    <div class="flex-1 min-w-0">
+
+                        <span class="block font-medium text-sm text-taxseer-ink truncate">
+                            {{ filing.recipient }}
+                        </span>
+
+                        <span class="small muted block mt-0.5">
+                            {{ filing.form }}
+                            · {{ filing.taxYear }}
+                            · ${{ (filing.amount ?? 0) | number:'1.2-2' }}
+                        </span>
+
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+
+                        <mat-chip
+                            class="pill"
+                            [ngClass]="statusClass(filing)">
+                            {{ filing.status }}
+                        </mat-chip>
+
+                        <span class="small muted whitespace-nowrap">
+                            ${{ pricePerForm }}.00
+                        </span>
+
+                    </div>
+
+                </div>
+
+            }
+
+        </div>
+
+        <!-- Summary -->
+        <div class="flex items-center justify-between gap-3 pt-4 mt-2 border-t border-taxseer-line">
+
+            <div>
+                <span class="block font-semibold text-taxseer-ink">
+                    Total
+                </span>
+
+                <span class="small muted">
+                    {{ totalCount }} form{{ totalCount === 1 ? '' : 's' }}
+                    at ${{ pricePerForm }}.00 each
+                </span>
+            </div>
+
+            <span class="text-lg font-semibold text-taxseer-ink">
+                ${{ totalPrice }}.00
+            </span>
+
+        </div>
+
+        <!-- Add button -->
+        <div class="mt-4">
+
+            <button
+                mat-flat-button
+                color="primary"
+                class="btn primary w-full"
+                [disabled]="loading || totalCount === 0"
+                (click)="addToCart()"
+                aria-label="Add forms to cart">
+
+                @if (loading) {
+
+                    <span class="flex items-center justify-center gap-2">
+
+                        <span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin">
+                        </span>
+
+                        Adding…
+
+                    </span>
+
+                } @else {
+
+                    Add {{ totalCount }}
+                    form{{ totalCount === 1 ? '' : 's' }} to cart
+
+                }
+
+            </button>
+
+        </div>
+
+    }
+
 </div>

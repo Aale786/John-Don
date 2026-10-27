@@ -922,11 +922,214 @@
 
     <!-- STEP 4: MANUAL FORM DETAILS -->
     @if (step === 4 && mode === 'manual') {
-    <taxseer-nec-amounts [rows]="amountRows" [payerName]="currentFiler?.name ?? ''"
-      [payerTin]="formatEin(currentFiler?.ein ?? '')" [payerAddress]="filerAddressLine()"
-      [payerState]="currentFiler?.state ?? 'MD'" [payerStateNumber]="currentFiler?.stateNo ?? ''"
-      (rowsChange)="onAmountRowsChange($event)" (fixRecipient)="fixRecipientRow($event)" (preview)="previewAmounts()">
-    </taxseer-nec-amounts>
+    <section class="nec-amounts">
+
+      <div class="sec-h">
+        <div class="nec-heading min-w-0">
+          <h2>Enter 1099-NEC amounts</h2>
+          <p class="muted small mt-0.5">
+            One row per recipient. Tab moves across the boxes.
+            Open a row for Box 2, Box 3, account number and the full form layout.
+          </p>
+        </div>
+        <div class="head-actions shrink-0 max-[1100px]:w-full">
+          <button mat-stroked-button type="button" class="btn small-btn" (click)="necUsePayerStateForAll()">
+            Use {{ currentFiler?.state ?? 'MD' }} and payer state no. for all rows
+          </button>
+          <button mat-stroked-button type="button" class="btn small-btn ghost" (click)="previewAmounts()">
+            Preview copies
+          </button>
+        </div>
+      </div>
+
+      <div class="card grid-wrap">
+        <table class="entry">
+          <thead>
+            <tr>
+              <th class="w-9"></th>
+              <th class="w-[230px]">Recipient</th>
+              <th class="num w-40">
+                <span>Nonemployee compensation</span>
+                <small class="box">Box 1</small>
+              </th>
+              <th class="num w-[150px]">
+                <span>Federal tax withheld</span>
+                <small class="box">Box 4</small>
+              </th>
+              <th class="num w-[140px]">
+                <span>State tax withheld</span>
+                <small class="box">Box 5</small>
+              </th>
+              <th class="w-[240px]">
+                <span>State / payer's state no.</span>
+                <small class="box">Box 6</small>
+              </th>
+              <th class="num w-[140px]">
+                <span>State income</span>
+                <small class="box">Box 7</small>
+              </th>
+              <th class="w-[110px]">Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (row of amountRowsToUse; track row.id) {
+            <tr>
+              <td>
+                <button mat-stroked-button type="button" class="btn ghost small-btn expand-button"
+                  [attr.aria-expanded]="row.expanded"
+                  [attr.aria-label]="'More boxes for ' + row.name"
+                  (click)="necToggleRow(row)">
+                  @if (row.expanded) {
+                  <img src="/assets/icons/chevron-down-dark-22.svg" alt="chevron-down" class="chevron-down-icon" width="16" height="16" />
+                  } @else {
+                  <img src="/assets/icons/chevron-right-dark-22.svg" alt="chevron-right" class="chevron-right-icon" width="16" height="16" />
+                  }
+                </button>
+              </td>
+
+              <td>
+                <strong>{{ row.name }}</strong>
+                <div class="small muted">{{ row.tin }}</div>
+                @if (row.recipientIssues.length) {
+                <button mat-button type="button" class="btn link small" (click)="fixRecipientRow(row.id)">
+                  Fix recipient details
+                </button>
+                }
+                @if (amountRowErrors(row).length) {
+                <div class="rowmsg err">{{ amountRowErrors(row).join('. ') }}</div>
+                } @else if (amountRowWarnings(row).length) {
+                <div class="rowmsg warn">{{ amountRowWarnings(row).join(' ') }}</div>
+                }
+              </td>
+
+              <td>
+                <input matInput class="money" type="number" min="0" step="0.01" placeholder="0.00"
+                  [attr.aria-label]="necBoxLabel(row, 'box1')"
+                  [ngModel]="row.box1"
+                  (ngModelChange)="necOnAmountChange(row, 'box1', $event)" />
+              </td>
+
+              <td>
+                <input matInput class="money" type="number" min="0" step="0.01" placeholder="0.00"
+                  [attr.aria-label]="necBoxLabel(row, 'box4')"
+                  [ngModel]="row.box4"
+                  (ngModelChange)="necOnAmountChange(row, 'box4', $event)" />
+              </td>
+
+              <td>
+                <input matInput class="money" type="number" min="0" step="0.01" placeholder="0.00"
+                  [attr.aria-label]="necBoxLabel(row, 'box5')"
+                  [ngModel]="row.box5"
+                  (ngModelChange)="necOnAmountChange(row, 'box5', $event)" />
+              </td>
+
+              <td>
+                <div class="state-input-group flex w-full gap-1.5">
+                  <mat-select class="sel-st"
+                    [attr.aria-label]="'Box 6 state for ' + row.name"
+                    [ngModel]="row.state"
+                    (ngModelChange)="necOnStateChange(row, $event)">
+                    <mat-option value=""></mat-option>
+                    @for (code of necStates; track code) {
+                    <mat-option [value]="code">{{ code }}</mat-option>
+                    }
+                  </mat-select>
+                  <input matInput class="txt" placeholder="Payer state no." aria-label="Payer's state number"
+                    [ngModel]="row.payerStateNumber"
+                    (ngModelChange)="necOnPayerStateNoChange(row, $event)" />
+                </div>
+              </td>
+
+              <td>
+                <input matInput class="money" type="number" min="0" step="0.01" placeholder="0.00"
+                  [attr.aria-label]="necBoxLabel(row, 'box7')"
+                  [ngModel]="row.box7"
+                  (ngModelChange)="necOnAmountChange(row, 'box7', $event)" />
+              </td>
+
+              <td>
+                <mat-chip class="pill" [ngClass]="necRowStatusClass(row)">{{ necRowStatus(row) }}</mat-chip>
+              </td>
+            </tr>
+
+            @if (row.expanded) {
+            <tr class="more">
+              <td></td>
+              <td colspan="7">
+                <div class="formcopy" aria-label="Form 1099-NEC layout">
+
+                  <div class="fc">
+                    <span class="cap">PAYER</span>
+                    <b>{{ currentFiler?.name ?? '' }}</b>
+                    <span class="small">{{ filerAddressLine() }}</span>
+                  </div>
+
+                  <div class="fc">
+                    <span class="cap">PAYER'S TIN</span>
+                    <span>{{ formatEin(currentFiler?.ein ?? '') }}</span>
+                    <span class="cap mt-1.5">RECIPIENT'S TIN</span>
+                    <span>{{ row.tin }}</span>
+                  </div>
+
+                  <div class="fc">
+                    <span class="cap">Box 2</span>
+                    <mat-checkbox class="chk"
+                      [ngModel]="row.box2"
+                      (ngModelChange)="necOnBox2Change(row, $event)">
+                      Direct sales of $5,000 or more of consumer products for resale
+                    </mat-checkbox>
+                  </div>
+
+                  <div class="fc">
+                    <span class="cap">RECIPIENT</span>
+                    <b>{{ row.name }}</b>
+                    <span class="small">{{ row.address }}</span>
+                  </div>
+
+                  <div class="fc">
+                    <label [attr.for]="'box3-' + row.id">Box 3 · Excess golden parachute payments</label>
+                    <input matInput [id]="'box3-' + row.id" class="money" type="number" min="0" step="0.01"
+                      placeholder="0.00"
+                      [ngModel]="row.box3"
+                      (ngModelChange)="necOnAmountChange(row, 'box3', $event)" />
+                  </div>
+
+                  <div class="fc">
+                    <label [attr.for]="'account-' + row.id">Account number (optional)</label>
+                    <input matInput [id]="'account-' + row.id" class="txt"
+                      [ngModel]="row.accountNumber"
+                      (ngModelChange)="necOnAccountChange(row, $event)" />
+                    <mat-checkbox class="chk"
+                      [ngModel]="row.secondTin"
+                      (ngModelChange)="necOnSecondTinChange(row, $event)">
+                      2nd TIN not.
+                    </mat-checkbox>
+                  </div>
+
+                </div>
+              </td>
+            </tr>
+            }
+            }
+          </tbody>
+
+          <tfoot>
+            <tr class="totals">
+              <td></td>
+              <td>Total, {{ amountRowsToUse.length }} form{{ amountRowsToUse.length === 1 ? '' : 's' }}</td>
+              <td class="num">${{ necTotalBox1 | number:'1.2-2' }}</td>
+              <td class="num">${{ necTotalBox4 | number:'1.2-2' }}</td>
+              <td class="num">${{ necTotalBox5 | number:'1.2-2' }}</td>
+              <td></td>
+              <td class="num">${{ necTotalBox7 | number:'1.2-2' }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+    </section>
     }
 
     <!-- STEP 4: BULK CHECK DATA -->
@@ -1290,7 +1493,6 @@
     <div class="mt-4">
       <app-add-to-cart
         [filings]="completedFilings"
-        [userId]="currentUserId"
         (cartUpdated)="onCartUpdated()">
       </app-add-to-cart>
     </div>
@@ -1389,27 +1591,31 @@
 
     <fieldset class="border border-(--line) rounded-lg p-4 space-y-3">
       <legend class="text-xs font-semibold text-(--ink-3) px-1">Payer</legend>
-      <mat-label>Legal name</mat-label>
-      <mat-form-field class="w-full " appearance="outline">
-        <input matInput id="fl-name" [ngModel]="filerForm.name" (ngModelChange)="filerForm.name = $event"
-          [errorStateMatcher]="matcher('name')" >
-        <mat-hint>As registered with the IRS for this EIN.</mat-hint>
-        <mat-error>{{ panelErrors['name'] }}</mat-error>
-      </mat-form-field>
+      <div>
+        <mat-label>Legal name</mat-label>
+        <mat-form-field class="w-full" appearance="outline">
+          <input matInput id="fl-name" [ngModel]="filerForm.name" (ngModelChange)="filerForm.name = $event">
+        </mat-form-field>
+        @if (panelErrors['name']) {
+        <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['name'] }}</span>
+        }
+      </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <mat-label>EIN</mat-label>
-          <mat-form-field class=" w-full" appearance="outline">
+          <mat-form-field class="w-full" appearance="outline">
             <input matInput id="fl-ein" inputmode="numeric" autocomplete="off" placeholder="12-3456789"
-              [ngModel]="filerForm.ein" (ngModelChange)="onPanelTin($event)" [errorStateMatcher]="matcher('ein')">
-            <mat-error>{{ panelErrors['ein'] }}</mat-error>
+              [ngModel]="filerForm.ein" (ngModelChange)="onPanelTin($event)">
           </mat-form-field>
+          @if (panelErrors['ein']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['ein'] }}</span>
+          }
         </div>
 
         <div>
           <mat-label>Phone</mat-label>
-          <mat-form-field class=" w-full" appearance="outline">
+          <mat-form-field class="w-full" appearance="outline">
             <input matInput id="fl-phone" type="tel" [ngModel]="filerForm.phone"
               (ngModelChange)="filerForm.phone = $event">
             <mat-hint>Printed on the payer box of 1099s.</mat-hint>
@@ -1422,11 +1628,13 @@
       <legend class="text-xs font-semibold text-(--ink-3) px-1">Address</legend>
       <div>
         <mat-label>Street address</mat-label>
-        <mat-form-field class=" w-full" appearance="outline">
+        <mat-form-field class="w-full" appearance="outline">
           <input matInput id="fl-a1" autocomplete="address-line1" [ngModel]="filerForm.address"
-            (ngModelChange)="filerForm.address = $event" [errorStateMatcher]="matcher('address')">
-          <mat-error>{{ panelErrors['address'] }}</mat-error>
+            (ngModelChange)="filerForm.address = $event">
         </mat-form-field>
+        @if (panelErrors['address']) {
+        <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['address'] }}</span>
+        }
       </div>
 
       <div>
@@ -1440,35 +1648,37 @@
         <div>
           <mat-label>City</mat-label>
           <mat-form-field class="w-full" appearance="outline">
-            <input matInput id="fl-city" [ngModel]="filerForm.city" (ngModelChange)="filerForm.city = $event"
-              [errorStateMatcher]="matcher('city')">
-            <mat-error>{{ panelErrors['city'] }}</mat-error>
+            <input matInput id="fl-city" [ngModel]="filerForm.city" (ngModelChange)="filerForm.city = $event">
           </mat-form-field>
+          @if (panelErrors['city']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['city'] }}</span>
+          }
         </div>
 
         <div>
           <mat-label>State</mat-label>
           <mat-form-field class="w-full" appearance="outline">
-            <mat-select id="fl-st" [ngModel]="filerForm.state" (ngModelChange)="filerForm.state = $event"
-              [errorStateMatcher]="matcher('state')">
+            <mat-select id="fl-st" [ngModel]="filerForm.state" (ngModelChange)="filerForm.state = $event">
               <mat-option value="">Select</mat-option>
               @for (state of stateOptions; track state[0]) {
               <mat-option [value]="state[0]">{{ state[0] }} · {{ state[1] }}</mat-option>
               }
             </mat-select>
-            <mat-error>{{ panelErrors['state'] }}</mat-error>
           </mat-form-field>
+          @if (panelErrors['state']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['state'] }}</span>
+          }
         </div>
 
-
         <div>
-
           <mat-label>ZIP</mat-label>
-          <mat-form-field class=" w-full" appearance="outline">
+          <mat-form-field class="w-full" appearance="outline">
             <input matInput id="fl-zip" inputmode="numeric" [ngModel]="filerForm.zip"
-              (ngModelChange)="filerForm.zip = $event" [errorStateMatcher]="matcher('zip')">
-            <mat-error>{{ panelErrors['zip'] }}</mat-error>
+              (ngModelChange)="filerForm.zip = $event">
           </mat-form-field>
+          @if (panelErrors['zip']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['zip'] }}</span>
+          }
         </div>
       </div>
     </fieldset>
@@ -1478,11 +1688,10 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <mat-label>Contact email</mat-label>
-          <mat-form-field class=" w-full" appearance="outline">
+          <mat-form-field class="w-full" appearance="outline">
             <input matInput id="fl-email" type="email" [ngModel]="filerForm.email"
-              (ngModelChange)="filerForm.email = $event" [errorStateMatcher]="matcher('email')">
+              (ngModelChange)="filerForm.email = $event">
             <mat-hint>Receives filing status updates.</mat-hint>
-            <mat-error>{{ panelErrors['email'] }}</mat-error>
           </mat-form-field>
         </div>
 
@@ -1520,11 +1729,13 @@
       } @else {
         <div>
           <mat-label>{{ panelTinLabel }}</mat-label>
-          <mat-form-field class=" tin-field w-full mt-2" appearance="outline">
+          <mat-form-field class="tin-field w-full mt-2" appearance="outline">
             <input matInput id="p-tin" inputmode="numeric" autocomplete="off" [placeholder]="panelTinPlaceholder"
-              [ngModel]="recipientForm.tin" (ngModelChange)="onPanelTin($event)" [errorStateMatcher]="matcher('tin')">
-            <mat-error>{{ panelErrors['tin'] }}</mat-error>
+              [ngModel]="recipientForm.tin" (ngModelChange)="onPanelTin($event)">
           </mat-form-field>
+          @if (panelErrors['tin']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['tin'] }}</span>
+          }
         </div>
       }
     </fieldset>
@@ -1534,12 +1745,13 @@
       @if (isBusinessRecipient) {
         <div>
           <mat-label>Business name</mat-label>
-          <mat-form-field class=" w-full" appearance="outline">
-            <input matInput id="p-biz" [ngModel]="recipientForm.name" (ngModelChange)="recipientForm.name = $event"
-              [errorStateMatcher]="matcher('name')">
+          <mat-form-field class="w-full" appearance="outline">
+            <input matInput id="p-biz" [ngModel]="recipientForm.name" (ngModelChange)="recipientForm.name = $event">
             <mat-hint>Exactly as on the W-9 line 1. The IRS matches this name to the EIN.</mat-hint>
-            <mat-error>{{ panelErrors['name'] }}</mat-error>
           </mat-form-field>
+          @if (panelErrors['name']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['name'] }}</span>
+          }
         </div>
 
         <div>
@@ -1553,9 +1765,11 @@
         <div>
           <mat-label>First name</mat-label>
           <mat-form-field class="w-full" appearance="outline">
-            <input matInput id="p-first" [ngModel]="recipientForm.first" (ngModelChange)="recipientForm.first = $event"
-              [errorStateMatcher]="matcher('name')">
+            <input matInput id="p-first" [ngModel]="recipientForm.first" (ngModelChange)="recipientForm.first = $event">
           </mat-form-field>
+          @if (panelErrors['first']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['first'] }}</span>
+          }
         </div>
 
         <div>
@@ -1568,14 +1782,13 @@
         <div>
           <mat-label>Last name</mat-label>
           <mat-form-field class="w-full" appearance="outline">
-            <input matInput id="p-last" [ngModel]="recipientForm.last" (ngModelChange)="recipientForm.last = $event"
-              [errorStateMatcher]="matcher('name')">
+            <input matInput id="p-last" [ngModel]="recipientForm.last" (ngModelChange)="recipientForm.last = $event">
           </mat-form-field>
+          @if (panelErrors['last']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['last'] }}</span>
+          }
         </div>
       </div>
-      @if (panelErrors['name']) {
-      <span class="text-xs text-(--red) block mt-1">{{ panelErrors['name'] }}</span>
-      }
       }
     </fieldset>
 
@@ -1595,9 +1808,11 @@
         <mat-label>Street address</mat-label>
         <mat-form-field class="w-full" appearance="outline">
           <input matInput id="p-a1" autocomplete="address-line1" [ngModel]="recipientForm.address"
-            (ngModelChange)="recipientForm.address = $event" [errorStateMatcher]="matcher('address')">
-          <mat-error>{{ panelErrors['address'] }}</mat-error>
+            (ngModelChange)="recipientForm.address = $event">
         </mat-form-field>
+        @if (panelErrors['address']) {
+        <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['address'] }}</span>
+        }
       </div>
 
       <div>
@@ -1611,33 +1826,37 @@
         <div>
           <mat-label>City</mat-label>
           <mat-form-field class="w-full" appearance="outline">
-            <input matInput id="p-city" [ngModel]="recipientForm.city" (ngModelChange)="recipientForm.city = $event"
-              [errorStateMatcher]="matcher('city')">
-            <mat-error>{{ panelErrors['city'] }}</mat-error>
+            <input matInput id="p-city" [ngModel]="recipientForm.city" (ngModelChange)="recipientForm.city = $event">
           </mat-form-field>
+          @if (panelErrors['city']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['city'] }}</span>
+          }
         </div>
 
         <div>
           <mat-label>State</mat-label>
-          <mat-form-field class=" w-full" appearance="outline">
-            <mat-select id="p-st" [ngModel]="recipientForm.state" (ngModelChange)="recipientForm.state = $event"
-              [errorStateMatcher]="matcher('state')">
+          <mat-form-field class="w-full" appearance="outline">
+            <mat-select id="p-st" [ngModel]="recipientForm.state" (ngModelChange)="recipientForm.state = $event">
               <mat-option value="">Select</mat-option>
               @for (state of stateOptions; track state[0]) {
               <mat-option [value]="state[0]">{{ state[0] }} · {{ state[1] }}</mat-option>
               }
             </mat-select>
-            <mat-error>{{ panelErrors['state'] }}</mat-error>
           </mat-form-field>
+          @if (panelErrors['state']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['state'] }}</span>
+          }
         </div>
 
         <div>
           <mat-label>ZIP</mat-label>
           <mat-form-field class="w-full" appearance="outline">
             <input matInput id="p-zip" inputmode="numeric" [ngModel]="recipientForm.zip"
-              (ngModelChange)="recipientForm.zip = $event" [errorStateMatcher]="matcher('zip')">
-            <mat-error>{{ panelErrors['zip'] }}</mat-error>
+              (ngModelChange)="recipientForm.zip = $event">
           </mat-form-field>
+          @if (panelErrors['zip']) {
+          <span class="field-error text-xs text-red-600 mt-0.5 block">{{ panelErrors['zip'] }}</span>
+          }
         </div>
       </div>
     </fieldset>
@@ -1648,9 +1867,8 @@
         <mat-label>Email (optional)</mat-label>
         <mat-form-field class="w-full" appearance="outline">
           <input matInput id="p-email" type="email" [ngModel]="recipientForm.email"
-            (ngModelChange)="recipientForm.email = $event" [errorStateMatcher]="matcher('email')">
+            (ngModelChange)="recipientForm.email = $event">
           <mat-hint>Used for W-9 requests and electronic copies.</mat-hint>
-          <mat-error>{{ panelErrors['email'] }}</mat-error>
         </mat-form-field>
       </div>
 
@@ -1662,23 +1880,28 @@
     }
   </div>
 
-  <footer class="p-4 border-t border-(--line) flex justify-end gap-2 bg-(--soft)">
-    <button mat-stroked-button class="btn" type="button" (click)="closePanel()">Cancel</button>
+  <footer class="p-4 border-t border-(--line) flex flex-col gap-2 bg-(--soft)">
+    @if (panelErrors['_form']) {
+    <div class="callout warn text-sm w-full">{{ panelErrors['_form'] }}</div>
+    }
+    <div class="flex justify-end gap-2">
+      <button mat-stroked-button class="btn" type="button" (click)="closePanel()">Cancel</button>
 
-    @if (panelKind === 'filer') {
-    <button mat-flat-button color="primary" class="btn primary" type="button" (click)="saveFiler()">
-      {{ panelEditing ? 'Save changes' : 'Add filer' }}
-    </button>
-    } @else {
-    @if (!panelEditing) {
-    <button mat-stroked-button class="btn" type="button" (click)="saveRecipient(true)">
-      Save and request W-9
-    </button>
-    }
-    <button mat-flat-button color="primary" class="btn primary" type="button" (click)="saveRecipient()">
-      {{ panelEditing ? 'Save changes' : 'Save and select' }}
-    </button>
-    }
+      @if (panelKind === 'filer') {
+      <button mat-flat-button color="primary" class="btn primary" type="button" (click)="saveFiler()">
+        {{ panelEditing ? 'Save changes' : 'Add filer' }}
+      </button>
+      } @else {
+      @if (!panelEditing) {
+      <button mat-stroked-button class="btn" type="button" (click)="saveRecipient(true)">
+        Save and request W-9
+      </button>
+      }
+      <button mat-flat-button color="primary" class="btn primary" type="button" (click)="saveRecipient()">
+        {{ panelEditing ? 'Save changes' : 'Save and select' }}
+      </button>
+      }
+    </div>
   </footer>
 </aside>
 }

@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { TaxseerFiler } from '../../views/taxseer/data/taxseer-filers.data';
 import { API_BASE } from './api.config';
@@ -38,6 +38,7 @@ function mapApiFiler(f: ApiFiler): TaxseerFiler {
     name2: f.name2 ?? '',
     mask: f.mask ?? false,
     formsUsed,
+    
     pending: f.pendingCount ?? 0,
     ready: f.readyCount ?? 0,
     filed: f.filedCount ?? 0,
@@ -53,24 +54,37 @@ export class FilerService {
   private readonly http = inject(HttpClient);
   private readonly base = `${API_BASE}/api/filers`;
 
+  /**
+   * In-memory cache of the last loaded filer list.
+   * Lives in the service (singleton) so it survives navigation.
+   * Components read this signal immediately — no blank flash on re-visit.
+   */
+  readonly cachedFilers = signal<TaxseerFiler[]>([]);
+
   getAll(): Observable<TaxseerFiler[]> {
-    return this.http.get<ApiFiler[]>(this.base).pipe(map(list => list.map(mapApiFiler)));
+    return this.http.get<ApiFiler[]>(this.base).pipe(
+      map(list => list.map(mapApiFiler)),
+      tap(filers => this.cachedFilers.set(filers))
+    );
   }
 
   search(q: string): Observable<TaxseerFiler[]> {
-    return this.http.get<ApiFiler[]>(this.base, { params: { q } }).pipe(map(list => list.map(mapApiFiler)));
+    return this.http.get<ApiFiler[]>(this.base, { params: { q } }).pipe(
+      map(list => list.map(mapApiFiler)),
+      tap(filers => this.cachedFilers.set(filers))
+    );
   }
 
   getById(id: number): Observable<TaxseerFiler> {
     return this.http.get<ApiFiler>(`${this.base}/${id}`).pipe(map(mapApiFiler));
   }
 
-  create(f: TaxseerFiler): Observable<TaxseerFiler> {
-    return this.http.post<ApiFiler>(this.base, toApiFiler(f)).pipe(map(mapApiFiler));
+  create(f: any): Observable<TaxseerFiler> {
+    return this.http.post<ApiFiler>(this.base, f).pipe(map(mapApiFiler));
   }
 
-  update(id: number, f: TaxseerFiler): Observable<TaxseerFiler> {
-    return this.http.put<ApiFiler>(`${this.base}/${id}`, toApiFiler(f)).pipe(map(mapApiFiler));
+  update(id: number, f: any): Observable<TaxseerFiler> {
+    return this.http.put<ApiFiler>(`${this.base}/${id}`, f).pipe(map(mapApiFiler));
   }
 
   delete(id: number): Observable<void> {

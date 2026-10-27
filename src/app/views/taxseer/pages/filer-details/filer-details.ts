@@ -3,7 +3,7 @@ import { Component, HostListener, OnInit, computed, effect, inject, signal } fro
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { forkJoin, map } from 'rxjs';
 import { TaxseerFiler, TaxseerFilerStore, US_STATES, US_STATE_NAMES, formatEin } from '../../data/taxseer-filers.data';
 import { TAXSEER_ORDERS } from '../orders/orders.data';
 import {
@@ -15,10 +15,11 @@ import {
   FilerRecipient,
   FilingStatus,
 } from './filer-details.data';
-import { FilerService } from '../../../../core/api/filer.service';
-import { RecipientService } from '../../../../core/api/recipient.service';
-import { FilingService } from '../../../../core/api/filing.service';
-import { DownloadService } from '../../../../core/api/download.service';
+import { FilerService } from '../../../../core/api-service/filer.service';
+import { RecipientService } from '../../../../core/api-service/recipient.service';
+import { FilingService } from '../../../../core/api-service/filing.service';
+import { DownloadService } from '../../../../core/api-service/download.service';
+import { CartItem, CartService } from '../../../../core/api-service/cart.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -80,7 +81,10 @@ type FilerEditErrors = {
 export class FilerDetailsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+private readonly cartService = inject(CartService);
 
+// Stores the cart items returned by the backend
+readonly cartItemsState = signal<CartItem[]>([]);
   readonly store = inject(TaxseerFilerStore);
   private readonly filerService = inject(FilerService);
   private readonly recipientService = inject(RecipientService);
@@ -167,23 +171,25 @@ export class FilerDetailsComponent implements OnInit {
 
   private loadFilerData(id: number): void {
     this.filerService.getById(id).subscribe(f => {
-      this.filerData.set(f);
-      // Also keep the store in sync for nav list
-      this.store.save(f);
+        this.filerData.set(f);
+        this.store.save(f);
     });
 
     this.recipientService.getByFiler(id).subscribe(data =>
-      this.recipientsState.set(data.map(r => ({ ...r })))
+        this.recipientsState.set(data.map(r => ({ ...r })))
     );
 
     this.filingService.getByFiler(id).subscribe(data =>
-      this.filingsState.set([...data])
+        this.filingsState.set([...data])
     );
 
     this.downloadService.getByFiler(id).subscribe(data =>
-      this.downloadsState.set([...data])
+        this.downloadsState.set([...data])
     );
-  }
+
+    // Load cart items from backend
+    this.loadCart();
+}
 
   readonly filerIndex = computed(() =>
     this.store.filers().findIndex(f => f.id === this.routeId())
@@ -561,31 +567,131 @@ export class FilerDetailsComponent implements OnInit {
     this.filingSelected.set(this.filteredFilings().map(row => row.id));
   }
 
-  addSelectedToCart(): void {
-    const ids = this.filingSelected();
-    if (!ids.length) return;
+ // Load cart items from the backend
+loadCart(): void {
+    this.cartService.getCart().subscribe({
+        next: (items: CartItem[]) => {
+            this.cartItemsState.set(items ?? []);
 
-    this.filingsState.update(list =>
-      list.map((row): FilerFiling =>
-        ids.includes(row.id) && row.status === 'Completed'
-          ? { ...row, status: 'In cart' }
-          : row
-      )
+            // Update filing statuses based on the backend cart
+            const cartFilingIds = new Set(
+                (items ?? []).map(item => String(item.filingId))
+            );
+
+            this.filingsState.update(list =>
+                list.map(row => ({
+                    ...row,
+                    status: cartFilingIds.has(String(row.id))
+                        ? 'In cart'
+                        : row.status === 'In cart'
+                            ? 'Completed'
+                            : row.status
+                }))
+            );
+        },
+        error: error => {
+            console.error('Failed to load cart:', error);
+            this.toast('Unable to load cart. Please try again.');
+        }
+    });
+}
+
+
+// Add selected completed filings to the backend cart
+addSelectedToCart(): void {
+    const selectedIds = this.filingSelected();
+
+    if (!selectedIds.length) {
+        this.toast('Please select at least one completed form.');
+        return;
+    }
+
+    const selectedRows = this.filingsState().filter(row =>
+        selectedIds.includes(row.id) && row.status === 'Completed'
     );
 
-    this.filingSelected.set([]);
-    this.toast(`${ids.length} form${ids.length > 1 ? 's' : ''} added to cart`);
-  }
+    if (!selectedRows.length) {
+        this.toast('No completed forms selected.');
+        return;
+    }
 
-  removeFromCart(id: string): void {
-    this.filingsState.update(list =>
-      list.map((row): FilerFiling =>
-        row.id === id ? { ...row, status: 'Completed' } : row
-      )
+    // Convert frontend filing IDs into numeric database IDs
+    const filingIds = selectedRows.map(row => Number(row.id));
+
+    // Prevent invalid IDs such as "f1" from being sent to the API
+    if (filingIds.some(id => !Number.isInteger(id) || id <= 0)) {
+        this.toast(
+            'Invalid filing ID. The filing must have a numeric database ID.'
+        );
+        console.error('Selected filing IDs:', selectedRows.map(row => row.id));
+        return;
+    }
+
+    // Send all selected filings to the backend
+    forkJoin(
+        filingIds.map(filingId =>
+            this.cartService.addToCart(filingId)
+        )
+    ).subscribe({
+        next: () => {
+            this.filingSelected.set([]);
+
+            // Reload the cart from the database
+            this.loadCart();
+
+            this.toast(
+                `${filingIds.length} form${filingIds.length > 1 ? 's' : ''} added to cart`
+            );
+        },
+        error: error => {
+            console.error('Add to cart failed:', error);
+            this.toast(
+                error?.error?.message ??
+                'Unable to add forms to cart. Please try again.'
+            );
+        }
+    });
+}
+
+
+// Remove a filing from cart
+// The HTML passes row.id (filing ID), so find its cart item ID first.
+removeFromCart(filingId: string): void {
+    const cartItem = this.cartItemsState().find(
+        item => String(item.filingId) === String(filingId)
     );
 
-    this.toast('Removed from cart. It is back under Completed.');
-  }
+    if (!cartItem) {
+        this.toast('Cart item not found. Please refresh the cart.');
+        this.loadCart();
+        return;
+    }
+
+    // Backend DELETE expects the cart item ID, not the filing ID
+    this.cartService.removeFromCart(cartItem.id).subscribe({
+        next: () => {
+            this.cartItemsState.update(items =>
+                items.filter(item => item.id !== cartItem.id)
+            );
+
+            this.filingsState.update(list =>
+                list.map(row =>
+                    String(row.id) === String(filingId)
+                        ? { ...row, status: 'Completed' }
+                        : row
+                )
+            );
+
+            this.toast('Removed from cart. It is back under Completed.');
+        },
+        error: error => {
+            console.error('Remove from cart failed:', error);
+            this.toast('Unable to remove item from cart.');
+        }
+    });
+}
+ 
+
 
   /* ---------- recipients ---------- */
 

@@ -5,8 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
-import { RecipientService } from '../../../../core/api/recipient.service';
-import { W9Service } from '../../../../core/api/w9.service';
+import { RecipientService } from '../../../../core/api-service/recipient.service';
+import { W9Service } from '../../../../core/api-service/w9.service';
 
 type Status = 'Submitted' | 'Requested' | 'Not requested';
 
