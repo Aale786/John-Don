@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { NgClass } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -11,7 +11,7 @@ import { AddToCartComponent } from '../../../../components/add-to-cart/add-to-ca
 @Component({
   selector: 'app-wizard-step-review',
   standalone: true,
-  imports: [NgClass, FormsModule, MatButtonModule, MatChipsModule, MatFormFieldModule, MatSelectModule, AddToCartComponent],
+  imports: [FormsModule, MatButtonModule, MatChipsModule, MatFormFieldModule, MatSelectModule, AddToCartComponent],
   templateUrl: './wizard-step-review.html',
 })
 export class WizardStepReviewComponent {

@@ -1,50 +1,124 @@
-<div class="sign-in">
-  <form class="sign-in__card" (ngSubmit)="submit()" novalidate>
-    <img
-      src="/images/taxseerLogo.png"
-      alt="Taxseer"
-      class="sign-in__logo"
-    />
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 sm:p-6">
+  <form
+    class="w-full max-w-md bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl shadow-indigo-100/50 rounded-2xl p-8 sm:p-10
+           transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-100/60"
+    (ngSubmit)="submit()"
+    novalidate
+  >
+    <!-- Logo -->
+    <div class="flex justify-center mb-8">
+      <img
+        src="/images/taxseerLogo.png"
+        alt="Taxseer"
+        class="h-10 w-auto object-contain transition-transform duration-300 hover:scale-105"
+      />
+    </div>
 
-    <h1 class="sign-in__title">Sign in</h1>
-    <p class="sign-in__lead">Use your Taxseer account to file 1099s and manage W-9s.</p>
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800">
+        Sign in
+      </h1>
+      <p class="mt-2 text-sm text-slate-500 leading-relaxed">
+        Use your Taxseer account to file 1099s and manage W-9s.
+      </p>
+    </div>
 
+    <!-- Error Message -->
     @if (errorMessage) {
-      <p class="sign-in__error" role="alert">{{ errorMessage }}</p>
+      <div
+        class="mb-6 flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700
+               animate-in fade-in slide-in-from-top-2 duration-300"
+        role="alert"
+      >
+        <svg class="h-5 w-5 flex-shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
     }
 
-    <mat-form-field appearance="outline" class="sign-in__field">
-      <mat-label>Email</mat-label>
-      <input
-        matInput
-        type="email"
-        name="email"
-        autocomplete="username"
-        [(ngModel)]="email"
-        required
-      />
-    </mat-form-field>
+    <!-- Email Field -->
+    <div class="mb-5">
+      <label class="block text-sm font-medium text-slate-700 mb-1.5">
+        Email
+      </label>
+      <div class="relative">
+        <input
+          type="email"
+          name="email"
+          autocomplete="username"
+          [(ngModel)]="email"
+          required
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800
+                 placeholder:text-slate-400
+                 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10
+                 outline-none transition-all duration-200"
+          placeholder="you@company.com"
+        />
+      </div>
+    </div>
 
-    <mat-form-field appearance="outline" class="sign-in__field">
-      <mat-label>Password</mat-label>
-      <input
-        matInput
-        type="password"
-        name="password"
-        autocomplete="current-password"
-        [(ngModel)]="password"
-        required
-      />
-    </mat-form-field>
+    <!-- Password Field -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-1.5">
+        <label class="block text-sm font-medium text-slate-700">
+          Password
+        </label>
+        <!-- Optional: Forgot password link -->
+        <!-- <a href="#" class="text-xs font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+          Forgot password?
+        </a> -->
+      </div>
+      <div class="relative">
+        <input
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          [(ngModel)]="password"
+          required
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800
+                 placeholder:text-slate-400
+                 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10
+                 outline-none transition-all duration-200"
+          placeholder="••••••••"
+        />
+      </div>
+    </div>
 
+    <!-- Submit Button -->
     <button
-      mat-flat-button
-      color="primary"
       type="submit"
-      class="sign-in__submit"
       [disabled]="submitting"
+      class="group relative w-full overflow-hidden rounded-xl bg-indigo-600 px-4 py-3.5
+             text-sm font-semibold text-white shadow-lg shadow-indigo-500/25
+             transition-all duration-300
+             hover:bg-indigo-500 hover:shadow-xl hover:shadow-indigo-500/30
+             focus:outline-none focus:ring-4 focus:ring-indigo-500/30
+             disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-indigo-600"
     >
-      {{ submitting ? 'Signing in…' : 'Sign in' }}
+      <span class="relative z-10 flex items-center justify-center gap-2">
+        @if (submitting) {
+          <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Signing in…
+        } @else {
+          Sign in
+          <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
+               fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        }
+      </span>
     </button>
+
+    <!-- Optional Footer -->
+    <p class="mt-8 text-center text-xs text-slate-400">
+      Secure sign-in powered by Taxseer
+    </p>
   </form>
 </div>
